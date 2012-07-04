@@ -1,0 +1,22 @@
+2012-06-27 15:35:33,959 INFO  [main] - Jversion:1.6.0_33; OS:Mac OS X-10.7.4
+2012-06-27 15:35:34,034 INFO  [main] - start creating frame
+2012-06-27 15:35:35,845 INFO  [main] - To create main window
+2012-06-27 15:35:38,425 INFO  [main] - To create MIB tree
+2012-06-27 15:42:00,410 INFO  [main] - Jversion:1.6.0_33; OS:Mac OS X-10.7.4
+2012-06-27 15:42:00,412 INFO  [main] - start creating frame
+2012-06-27 15:42:00,563 INFO  [main] - To create main window
+2012-06-27 15:42:01,141 INFO  [main] - To create MIB tree
+2012-06-27 15:42:01,433 INFO  [Thread-4] - Created a UIMibTree. Thread:Thread-4
+2012-06-27 15:42:01,436 INFO  [Thread-4] - To load MIB: /Users/gabe/Documents/LoCal/SNMPstuff/mibbrowser/mibs/RFC1213-MIB
+2012-06-27 15:42:01,436 INFO  [Thread-4] - Load raw mib:/Users/gabe/Documents/LoCal/SNMPstuff/mibbrowser/mibs/RFC1213-MIB
+2012-06-27 15:42:01,615 INFO  [Thread-4] - MIB module RFC1213-MIB has been added
+2012-06-27 15:42:01,716 INFO  [Thread-4] - To load MIB: /Users/gabe/Documents/LoCal/SNMPstuff/mibbrowser/mibs/HOST-RESOURCES-MIB
+2012-06-27 15:42:01,717 INFO  [Thread-4] - Load raw mib:/Users/gabe/Documents/LoCal/SNMPstuff/mibbrowser/mibs/HOST-RESOURCES-MIB
+2012-06-27 15:42:01,925 INFO  [Thread-4] - MIB module SNMPv2-TC has been added
+2012-06-27 15:42:02,589 INFO  [Thread-4] - MIB module SNMPv2-MIB has been added
+2012-06-27 15:42:02,657 INFO  [Thread-4] - MIB module IANAifType-MIB has been added
+2012-06-27 15:42:02,658 INFO  [Thread-4] - MIB module IF-MIB has been added
+2012-06-27 15:42:02,658 INFO  [Thread-4] - MIB module HOST-RESOURCES-MIB has been added
+2012-06-27 15:42:03,000 INFO  [Thread-4] - Loading time = 1565
+2012-06-27 15:42:03,948 INFO  [main] - frame created
+2012-06-27 15:42:32,220 INFO  [Thread-7] - receive timed out.

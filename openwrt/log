@@ -1,0 +1,5 @@
+iw dev wlan0 set channel 1
+#tcpdump -i wlan0 -w /tmp/dump ether src 90:27:e4:f6:3d:20
+#tcpdump -i wlan0 -tt -l -e ether src 90:27:e4:f6:3d:20
+tcpdump -i wlan0 -tt -l -e
+

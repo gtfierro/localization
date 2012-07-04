@@ -1,0 +1,11 @@
+iw dev wlan0 del
+iw dev wlan1 del
+
+iw phy phy0 interface add wlan0 type monitor
+iw dev wlan0 set txpower fixed 0
+iw dev wlan0 set channel 11
+ifconfig wlan0 up
+
+#iw phy phy1 interface add wlan1 type monitor
+#iw dev wlan1 set channel 149
+#ifconfig wlan1 up
