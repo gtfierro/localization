@@ -1,6 +1,7 @@
 import re
 import os
 import sys
+import random as rnd
 from prun import *
 
 class Collector:
@@ -10,7 +11,7 @@ class Collector:
     self.server = server
     self.nic = nic
     self.count = 0
-    print os.system('ssh root@%s /bin/sh monitor' % (server))
+    #print os.system('ssh root@%s /bin/sh monitor' % (server))
     cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
     #cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e"' % server
     self.run = CmdRun(mgr, cmd, self._handle_line)
@@ -35,7 +36,6 @@ class Collector:
   def kill(self):
     self.run.kill()
     cmd = 'ssh root@%s "/usr/bin/killall -9 tcpdump"' % self.server
-    print cmd
     print os.system(cmd)
 
 def main():
@@ -46,15 +46,15 @@ def main():
     chan = 11
   #mac = '90:27:e4:f6:49:12' #andrew mac
   #mac = '00:26:bb:00:2f:df' #gabe mac
-  #mac = '0c:df:a4:5e:1b:91' #gabe phone mac
+  mac = '0c:df:a4:5e:1b:91' #gabe phone mac
   #mac = 'b4:74:9f:c1:2b:dd' #nikita mac
   #mac = '00:26:26:4b:10:8e' #omar mac
   #mac = '00:0d:f0:8d:ef:80' #fitpc mac
-  mac = '58:55:CA:7s:2A:93' #gabe ipod mac
+  #mac = '58:55:CA:7s:2A:93' #gabe ipod mac
   collectors = [
     Collector(mgr, '128.32.156.131', mac),
     Collector(mgr, '128.32.156.64',mac),
-    Collector(mgr, '128.32.156.67',mac),
+ #   Collector(mgr, '128.32.156.67',mac),
   ]
 
   try:
@@ -62,15 +62,21 @@ def main():
       c.set_channel(chan)
 
     while True:
-      time.sleep(5)
-      closest = None
-      print [c.count for c in collectors]
+      mgr.poll(1)
+      time.sleep(1)
+      closest = float('inf') #infinity
+      print
       for c in collectors:
+        print c.server,
+        if not c.power:
+          print "did you run ./monitor on the routers?"
         c.count = 0
         if len(c.power) > 2:
           first = time.time() - 4*60
           c.power = [(t,p) for (t,p) in c.power if t >= first]
-        print zip(*c.power)
+          l= zip(*c.power)
+          avg = float(sum(l[1])) / float(len(l[1]))
+          print avg
   except KeyboardInterrupt:
     for c in collectors:
       c.kill()
