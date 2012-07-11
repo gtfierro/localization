@@ -25,7 +25,8 @@ class Collector:
     self.nic = nic
     self.count = 0
     self.pos = pos
-    cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
+    self.mgr = mgr
+    self.cmd = cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
     self.run = CmdRun(mgr, cmd, self._handle_line)
 
   def _handle_line(self, line):
@@ -49,6 +50,11 @@ class Collector:
     self.run.kill()
     cmd = 'ssh root@%s "/usr/bin/killall -9 tcpdump"' % self.server
     print os.system(cmd)
+
+  def restart(self):
+    self.kill()
+    self.run = CmdRun(self.mgr, self.cmd, self._handle_line)
+
 
 
 class Localizer(object):
@@ -90,12 +96,19 @@ class Localizer(object):
       floor = pygame.transform.scale(floor, (1088,800))
 
     try:
+      last_restart = time.time()
       while True:
-        self.mgr.poll(1)
+        try:
+          self.mgr.poll(1)
+        except OSError:
+          continue
         time.sleep(1)
         print
         results = []
         for c in self.collectors:
+          last_restart = time.time()
+          if (30 < time.time() - last_restart):
+            c.restart()
           if not c.power:
             print "did you run ./monitor on the routers? Also check wireless channel"
           #set up defaults
@@ -120,12 +133,26 @@ class Localizer(object):
         #update time
         if duration:
           if (time.time() - start_time) > duration:
-            break
+            return results
 
     except KeyboardInterrupt:
       for c in self.collectors:
         c.kill()
 
+def track(chan=11,graphics=False):
+  print chan,graphics
+  l = Localizer(chan = chan, graphics = graphics)
+
+  argmax = lambda x: max(x, key=lambda y: y[1])[0]
+
+  last_restart = time.time()
+  while True:
+    if (30 < time.time() - last_restart):
+      last_restart = time.time()
+      for c in l.collectors:
+        c.restart()
+    closest = argmax(l.run(1))
+    print closest
 
 
 def main(graphics=False):
