@@ -53,7 +53,7 @@ class Collector:
 
 class Localizer(object):
 
-  def __init__(self,chan=11,graphics=False,mac='0c:df:a4:53:1b:91',fingerprints_file='fingerprints.db'):
+  def __init__(self,chan=11,graphics=False,mac='00:26:bb:00:2f:df',fingerprints_file='fingerprints.db'):
     self.chan = chan
     self.graphics = graphics
     self.mac = mac
@@ -77,6 +77,9 @@ class Localizer(object):
     reading is a tuple of the readings from collectors A,B,C..
     """
     pos = [0,0]
+
+  def flush(self):
+    pickle.dump(self.tmpdict,open('tmpdict.db','wb'))
 
   def run(self,duration=0,coord=None,loc_index=0):
     start_time = time.time()
@@ -123,7 +126,6 @@ class Localizer(object):
       for c in self.collectors:
         c.kill()
 
-    pickle.dump(tmpdict,open('tmpdict.db'))
 
 
 def main(graphics=False):

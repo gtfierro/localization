@@ -1,4 +1,4 @@
-import which
+from which import Localizer
 import os
 import sys
 from flask import Flask, jsonify
@@ -18,6 +18,11 @@ def measure(coord,index):
   l.run(duration=90,coord=(x,y),loc_index=index)
   return 'success!'
 
-if __name__='__main__':
+@app.route('/flush')
+def flush():
+  l.flush()
+  return 'success'
+
+if __name__=='__main__':
   port = int(os.environ.get('PORT',8080))
   app.run(host='0.0.0.0',port=port)
