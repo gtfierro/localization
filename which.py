@@ -123,6 +123,8 @@ class Localizer(object):
       for c in self.collectors:
         c.kill()
 
+    pickle.dump(tmpdict,open('tmpdict.db'))
+
 
 def main(graphics=False):
   if len(sys.argv) > 2:
