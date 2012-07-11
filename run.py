@@ -11,9 +11,12 @@ class Collector:
     self.nic = nic
     self.count = 0
     cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
+    #cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e"' % server
     self.run = CmdRun(mgr, cmd, self._handle_line)
 
   def _handle_line(self, line):
+    line = line.strip()
+    print line
     m = re.search('^(\d+\.\d+) .* (-?\d+)dB .* SA:([0-9a-f:]+) ', line)
     if m:
       (time, db, mac) = m.groups()
@@ -37,15 +40,20 @@ class Collector:
 
 def main():
   mgr = IOMgr()
-  #mac = '90:27:e4:f6:49:12'
-  mac = '00:26:bb:00:2f:df' #gabe mac
+  #mac = '90:27:e4:f6:49:12' #andrew mac
+  #mac = '00:26:bb:00:2f:df' #gabe mac
+  mac = '0c:df:a4:5e:1b:91' #gabe phone mac
+  #mac = 'b4:74:9f:c1:2b:dd' #nikita mac
+  #mac = '00:26:26:4b:10:8e' #omar mac
   collectors = [
     Collector(mgr, '128.32.156.131', mac),
+    Collector(mgr, '128.32.156.64',mac),
+    #Collector(mgr, '128.32.156.67',mac),
     #Collector(mgr, 'wrt', mac),
   ]
   try:
     for c in collectors:
-      c.set_channel(1)
+      c.set_channel(11)
 
     import matplotlib
     matplotlib.use('TkAgg')

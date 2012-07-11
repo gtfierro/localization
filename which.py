@@ -154,7 +154,6 @@ def track(chan=11,graphics=False):
     closest = argmax(l.run(1))
     print closest
 
-
 def main(graphics=False):
   if len(sys.argv) > 2:
     chan = int(sys.argv[1])
