@@ -28,6 +28,7 @@ class RSSIReader(object):
     self.sample_rate = sample_rate
     self.log_dest = log_dest
     self.server = server
+    self.fingerprints = {}
     if not opsys:
       host = os.uname()
       if 'Darwin' in host:
@@ -38,6 +39,15 @@ class RSSIReader(object):
         self.opsys = 'linux'
     else:
       self.opsys = opsys
+
+  def list_to_dict(self,l):
+    if isinstance(l,dict):
+      return l
+    d={}
+    for k,v in l:
+      d[k] = v
+    return d
+
 
   def get_rssi_fingerprint(self):
     """
@@ -75,9 +85,9 @@ class RSSIReader(object):
         rssi = float(get_rssi(r))
         print mac,rssi
         ret_list.append((mac,rssi))
-    return ret_list
+    return self.list_to_dict(ret_list)
 
-  def start_sampling(self,duration=None,number=None):
+  def start(self,duration=None,number=None):
     """
     Starts sampling using get_rssi_fingerprint every [sample_rate] seconds and sends the results
     to [log_dest]. Gets results for [duration] seconds or gets [number] results, whichever comes
@@ -114,4 +124,45 @@ class RSSIReader(object):
     with open(self.log_dest,'wb') as fout:
       pickle.dump(averages, fout)
 
+  def add(self, db_file,name=''):
+    """
+    use the pickled [db_file] (dict of mac addressses mapped to avg rssi strength) 
+    to classify further fingerprints. the db_file will be stored internally as [name],
+    which defaults to the filename of [db_file]
+    """
+    if not name:
+      name = db_file
+    self.fingerprints[name] = self.list_to_dict(pickle.load(open(db_file)))
 
+  def classify(self, fingerprint=''):
+    """
+    classify a given [fingerprint] (defaults to self.get_rssi_fingerprint()) according
+    to the averages stored in self.fingerprints.
+    TODO: what kind of comparison should we use?
+    """
+
+    def _score_dict(querydict,targetdict):
+      """
+      returns score for comparing [querydict] against [targetdict]. Lower is better
+      100 for each differing MAC address
+      for each of the in-common MAC addresses, add the absolute value of the difference
+      """
+      score = 0
+      for qk in querydict.keys():
+        if qk in targetdict.keys():
+          score+= abs(querydict[qk] - targetdict[qk])
+        else:
+          score+=10
+      for tk in targetdict.keys():
+        if tk not in querydict.keys():
+          score+=10
+      return score
+
+    if not fingerprint:
+      fingerprint = self.get_rssi_fingerprint()
+
+    scores = {}
+    for fp in self.fingerprints:
+      scores[fp] = _score_dict(fingerprint, self.fingerprints[fp])
+
+    print scores
