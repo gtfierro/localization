@@ -1,8 +1,18 @@
 import re
 import os
 import sys
-import random as rnd
+import numpy as np
+import math
 from prun import *
+
+def similarity(tup1, tup2):
+  """
+  closer to 1.0, the more similar
+
+  """
+  a=numpy.array(map(abs,tup1))
+  b=numpy.array(map(abs,tup2))
+  return 1.0 - np.sqrt(np.sum((a-b)**2) / (np.sum(a) * np.sqrt(np.sum(b))))
 
 class Collector:
   def __init__(self, mgr, server, mac, nic = 'wlan0'):
@@ -11,9 +21,7 @@ class Collector:
     self.server = server
     self.nic = nic
     self.count = 0
-    #print os.system('ssh root@%s /bin/sh monitor' % (server))
     cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
-    #cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e"' % server
     self.run = CmdRun(mgr, cmd, self._handle_line)
 
   def _handle_line(self, line):
@@ -54,7 +62,7 @@ def main():
   collectors = [
     Collector(mgr, '128.32.156.131', mac),
     Collector(mgr, '128.32.156.64',mac),
- #   Collector(mgr, '128.32.156.67',mac),
+    Collector(mgr, '128.32.156.45',mac),
   ]
 
   try:
@@ -83,4 +91,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-
