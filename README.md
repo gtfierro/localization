@@ -1,6 +1,7 @@
 #Localization tools
 
-##Web Tool So that I don't have to get my phone out to measure the wireless
+##Web Tool 
+So that I don't have to get my phone out to measure the wireless
 signals, I created a web tool to help us out with everything. On the FitPC
 (password '410soda'), in the ```localization``` directory, alter the
 ```flask_server.py``` and ```which.py``` files so that they have the MAC
