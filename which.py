@@ -26,6 +26,9 @@ class Collector:
     self.count = 0
     self.pos = pos
     self.mgr = mgr
+    self.channels = [1,6,11]
+    self.channel = 0
+    os.system('ssh root@%s "/usr/bin/killall -9 tcpdump"' % self.server)
     self.cmd = cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
     self.run = CmdRun(mgr, cmd, self._handle_line)
 
@@ -41,7 +44,12 @@ class Collector:
         self.power.append((float(time), int(db)))
         self.count += 1
 
+  def cycle_channel(self):
+    self.set_channel( self.channels[(self.channels.index(self.channel) + 1) % len(self.channels)])
+    
+
   def set_channel(self, chan):
+    self.channel = chan
     cmd = 'ssh root@%s "/usr/sbin/iw dev %s set channel %d"' % (self.server, self.nic, chan)
     print cmd
     print os.system(cmd)
@@ -100,23 +108,26 @@ class Localizer(object):
       while True:
         try:
           self.mgr.poll(1)
-        except OSError:
+        except:
           continue
         time.sleep(1)
         print
         results = []
         for c in self.collectors:
           last_restart = time.time()
-          if (30 < time.time() - last_restart):
+          if (60 < time.time() - last_restart):
             c.restart()
           if not c.power:
             print "did you run ./monitor on the routers? Also check wireless channel"
+            c.cycle_channel()
           #set up defaults
           c.count = avg = 0
+          valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 10]
           if len(c.power) > 2:
-            first = time.time() - 4*60
-            c.power = [(t,p) for (t,p) in c.power if t >= first]
-            l= zip(*c.power)
+            #first = time.time()-10# - 4*60
+            #c.power = [(t,p) for (t,p) in c.power if t >= first]
+            l= zip(*valid_points)
+            print c,l[1]
             avg = float(sum(l[1])) / float(len(l[1]))
           results.append( (c.server,avg) )
         print results
@@ -146,14 +157,23 @@ def track(chan=11,graphics=False):
   argmax = lambda x: max(x, key=lambda y: y[1])[0]
 
   last_restart = time.time()
+  last_switch = time.time()
   while True:
-    if (30 < time.time() - last_restart):
-      last_restart = time.time()
+    try:
+      if (30 < time.time() - last_switch):
+        last_switch = time.time()
+        for c in l.collectors:
+          c.cycle_channel()
+      if (120 < time.time() - last_restart):
+        last_restart = time.time()
+        for c in l.collectors:
+          c.restart()
+      closest = argmax(l.run(1))
+      print closest
+    except KeyboardInterrupt:
       for c in l.collectors:
-        c.restart()
-    closest = argmax(l.run(1))
-    print closest
-
+        c.kill()
+      break
 
 def main(graphics=False):
   if len(sys.argv) > 2:
