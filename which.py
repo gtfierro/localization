@@ -59,6 +59,7 @@ class Localizer(object):
     self.mac = mac
     fingerprints = pickle.load(open(fingerprints_file))
     self.mgr = IOMgr()
+    self.tmpdict = {}
     self.collectors = []
     #initialize collectors
     self.add_collector( '128.32.156.131',pos=(285,395))
@@ -77,7 +78,7 @@ class Localizer(object):
     """
     pos = [0,0]
 
-  def run(self,duration=0):
+  def run(self,duration=0,coord=None,loc_index=0):
     start_time = time.time()
     if self.graphics:
       pygame.init()
@@ -103,6 +104,8 @@ class Localizer(object):
             avg = float(sum(l[1])) / float(len(l[1]))
           results.append( (c.server,avg) )
         print results
+        if coord and loc_index:
+          self.tmpdict[loc_index] = (coord, results)
         if self.graphics:
           #redraw whole screen
           for c in self.collectors:
