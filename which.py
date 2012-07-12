@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import math
 import pickle
+import lights
 import pygame, sys, os
 from pygame.locals import *
 from prun import *
@@ -165,7 +166,7 @@ class Localizer(object):
       for c in self.collectors:
         c.kill()
 
-def track(chan=11,graphics=False):
+def track(chan=11,graphics=False,actuate=False):
   print chan,graphics
   l = Localizer(chan = chan, graphics = graphics)
 
@@ -174,6 +175,11 @@ def track(chan=11,graphics=False):
   last_restart = time.time()
   last_switch = time.time()
   time.sleep(15)
+  last = None
+  lookup = {'128.32.156.131': 'Zone1',
+            '128.32.156.64' : 'Zone2',
+            '128.32.156.45' : 'Zone3',
+           }
   while True:
     try:
       if (120 < time.time() - last_restart):
@@ -182,6 +188,13 @@ def track(chan=11,graphics=False):
           c.restart()
       closest = argmax(l.run(1))
       print closest
+      if actuate:
+        print lights.get_level(lookup[closest]),'to',lights.set_level(lookup[closest],3)
+        if last:
+          print lights.set_level(last,1)
+        print lookup[closest], 'now',lights.get_level(lookup[closest])
+        last = lookup[closest]
+
     except KeyboardInterrupt:
       for c in l.collectors:
         c.kill()

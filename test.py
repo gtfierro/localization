@@ -1,2 +1,2 @@
 import which
-which.track(1)
+which.track(1,True)
