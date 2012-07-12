@@ -191,7 +191,8 @@ def track(chan=11,graphics=False,actuate=False):
       if actuate:
         print lights.get_level(lookup[closest]),'to',lights.set_level(lookup[closest],3)
         if last:
-          print lights.set_level(last,1)
+          if last != lookup[closest]:
+            print lights.set_level(last,1)
         print lookup[closest], 'now',lights.get_level(lookup[closest])
         last = lookup[closest]
 
