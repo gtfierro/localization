@@ -28,7 +28,8 @@ class Collector:
     self.mgr = mgr
     self.channels = [1,6,11]
     self.channel = 0
-    os.system('ssh root@%s "/usr/bin/killall -9 tcpdump"' % self.server)
+    print os.system('ssh root@%s killall -9 tcpdump' % self.server)
+    print os.system('ssh root@%s killall -9 tcpdump' % self.server)
     self.cmd = cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
     self.run = CmdRun(mgr, cmd, self._handle_line)
 
@@ -108,29 +109,43 @@ class Localizer(object):
       while True:
         try:
           self.mgr.poll(1)
-        except:
-          continue
+        except Exception as e:
+          print e.stacktrace()
+          raise e
         time.sleep(1)
         print
         results = []
         for c in self.collectors:
-          last_restart = time.time()
-          if (60 < time.time() - last_restart):
-            c.restart()
-          if not c.power:
-            print "did you run ./monitor on the routers? Also check wireless channel"
-            c.cycle_channel()
+
+          #last_restart = time.time()
+          #if (60 < time.time() - last_restart):
+          #  for c in self.collectors:
+          #    c.restart()
+
           #set up defaults
-          c.count = avg = 0
+          avg = 0
+          #print 'c.power'
+          #print map(lambda x: (time.time() - x[0],x[1]), c.power)
+          #print
           valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 10]
-          if len(c.power) > 2:
-            #first = time.time()-10# - 4*60
-            #c.power = [(t,p) for (t,p) in c.power if t >= first]
+          size = 10 if len(c.power) >= 10 else len(c.power)
+          if not valid_points and c.power:
+            valid_points = sorted(c.power,key= lambda x: x[0])[:size]
+          #print 'validpoints'
+          #print valid_points
+          if not valid_points:
+            print "did you run ./monitor on the routers? Also check wireless channel"
+            for c in self.collectors:
+              c.power = []
+              c.cycle_channel()
+            time.sleep(15)
+            continue
+          else:
             l= zip(*valid_points)
-            print c,l[1]
+            #print c.server,l[1]
             avg = float(sum(l[1])) / float(len(l[1]))
           results.append( (c.server,avg) )
-        print results
+        print results,'on channel',self.chan
         if coord and loc_index:
           self.tmpdict[loc_index] = (coord, results)
         if self.graphics:
@@ -158,12 +173,9 @@ def track(chan=11,graphics=False):
 
   last_restart = time.time()
   last_switch = time.time()
+  time.sleep(15)
   while True:
     try:
-      if (30 < time.time() - last_switch):
-        last_switch = time.time()
-        for c in l.collectors:
-          c.cycle_channel()
       if (120 < time.time() - last_restart):
         last_restart = time.time()
         for c in l.collectors:
