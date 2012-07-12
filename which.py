@@ -8,6 +8,7 @@ import lights
 import pygame, sys, os
 from pygame.locals import *
 from prun import *
+from collections import defaultdict
 
 def similarity(tup1, tup2):
   """
@@ -69,18 +70,19 @@ class Collector:
 
 class Localizer(object):
 
-  def __init__(self,chan=11,graphics=False,mac='00:26:bb:00:2f:df',fingerprints_file='fingerprints.db'):
+  def __init__(self,chan=11,graphics=False,mac='f8:0c:f3:1d:16:49',fingerprints_file='fingerprints.db'):
     self.chan = chan
     self.graphics = graphics
     self.mac = mac
     fingerprints = pickle.load(open(fingerprints_file))
     self.mgr = IOMgr()
-    self.tmpdict = {}
+    self.tmpdict = defaultdict(lambda : defaultdict(list))
     self.collectors = []
     #initialize collectors
     self.add_collector( '128.32.156.131',pos=(285,395))
     self.add_collector( '128.32.156.64', pos=(465,395))
     self.add_collector( '128.32.156.45', pos=(700,350))
+    self.add_collector( '128.32.156.67', pos=(900,395))
     #update collector channels
     for c in self.collectors:
       c.set_channel(self.chan)
@@ -145,7 +147,7 @@ class Localizer(object):
             l= zip(*valid_points)
             #print c.server,l[1]
             avg = float(sum(l[1])) / float(len(l[1]))
-          results.append( (c.server,avg) )
+          results.append( (c.server,avg,len(valid_points)) )
         print results,'on channel',self.chan
         if coord and loc_index:
           self.tmpdict[loc_index] = (coord, results)
