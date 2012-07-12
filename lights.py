@@ -41,6 +41,8 @@ def get_level(zone):
   switches and direct manipulation of BACnet, and this returned the correct light level
   each time!
   """
+  if isinstance(zone, str):
+    zone = buildingdata.buildings['SutardjaDaiHall'].floors['Floor4'].zones[zone]
   low_obj = bn.find(zone.controls['low'],zone.controls['dev'])
   high_obj = bn.find(zone.controls['high'],zone.controls['dev'])
   for i in range(2):
