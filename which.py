@@ -9,6 +9,25 @@ import pygame, sys, os
 from pygame.locals import *
 from prun import *
 from collections import defaultdict
+from fabric.api import *
+
+#for fabric
+@parallel
+def parallel_uname():
+  run('uname',shell=False)
+
+@parallel
+def kill_tcpdump():
+  run('killall -9 tcpdump',shell=False)
+
+@parallel
+def run_tcpdump(nic,mac):
+  run('tcpdump -tt -l -e -i %s ether src %s' % (nic, mac),shell=False,pty=False)
+
+@parallel
+def set_channel(nic,chan):
+  run('/usr/sbin/iw dev %s set channel %d' % (nic, chan), shell=False)
+>>>>>>> origin/fabric
 
 def similarity(tup1, tup2):
   """
@@ -30,10 +49,10 @@ class Collector:
     self.mgr = mgr
     self.channels = [1,6,11]
     self.channel = 0
-    print os.system('ssh root@%s killall -9 tcpdump' % self.server)
-    print os.system('ssh root@%s killall -9 tcpdump' % self.server)
-    self.cmd = cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
-    self.run = CmdRun(mgr, cmd, self._handle_line)
+    #print os.system('ssh root@%s killall -9 tcpdump' % self.server)
+    #print os.system('ssh root@%s killall -9 tcpdump' % self.server)
+    #self.cmd = cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
+    #self.run = CmdRun(mgr, cmd, self._handle_line)
 
   def _handle_line(self, line):
     line = line.strip()
@@ -85,7 +104,10 @@ class Localizer(object):
     self.add_collector( '128.32.156.67', pos=(900,395))
     #update collector channels
     for c in self.collectors:
-      c.set_channel(self.chan)
+      with settings(warn_only=True,host_string='root@%s' % c.server):
+        kill_tcpdump()
+        set_channel(c.nic, self.chan)
+        #run_tcpdump(c.nic, self.mac)
 
   def add_collector(self, server,pos=(0,0)):
     self.collectors.append(Collector(self.mgr, server, self.mac, pos=pos))
