@@ -12,6 +12,7 @@ from collections import defaultdict
 from fabric.api import *
 
 #for fabric
+channels = [1,6,11]
 @parallel
 def parallel_uname():
   run('uname',shell=False)
@@ -22,12 +23,15 @@ def kill_tcpdump():
 
 @parallel
 def run_tcpdump(nic,mac):
-  run('tcpdump -tt -l -e -i %s ether src %s' % (nic, mac),shell=False,pty=False)
+  run('tcpdump -tt -l -e -i %s ether src %s' % (nic, mac),shell=False)
 
 @parallel
 def set_channel(nic,chan):
   run('/usr/sbin/iw dev %s set channel %d' % (nic, chan), shell=False)
->>>>>>> origin/fabric
+
+@parallel
+def cycle_channel(nic, cur_chan):
+  set_channel(nic, channels[(channels.index(cur_chan) + 1) % len(channels)])
 
 def similarity(tup1, tup2):
   """
@@ -49,10 +53,6 @@ class Collector:
     self.mgr = mgr
     self.channels = [1,6,11]
     self.channel = 0
-    #print os.system('ssh root@%s killall -9 tcpdump' % self.server)
-    #print os.system('ssh root@%s killall -9 tcpdump' % self.server)
-    #self.cmd = cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
-    #self.run = CmdRun(mgr, cmd, self._handle_line)
 
   def _handle_line(self, line):
     line = line.strip()
@@ -65,27 +65,6 @@ class Collector:
         assert (len(self.power) == 0 or float(time) > self.power[-1][0])
         self.power.append((float(time), int(db)))
         self.count += 1
-
-  def cycle_channel(self):
-    self.set_channel( self.channels[(self.channels.index(self.channel) + 1) % len(self.channels)])
-    
-
-  def set_channel(self, chan):
-    self.channel = chan
-    cmd = 'ssh root@%s "/usr/sbin/iw dev %s set channel %d"' % (self.server, self.nic, chan)
-    print cmd
-    print os.system(cmd)
-
-  def kill(self):
-    self.run.kill()
-    cmd = 'ssh root@%s "/usr/bin/killall -9 tcpdump"' % self.server
-    print os.system(cmd)
-
-  def restart(self):
-    self.kill()
-    self.run = CmdRun(self.mgr, self.cmd, self._handle_line)
-
-
 
 class Localizer(object):
 
@@ -107,6 +86,7 @@ class Localizer(object):
       with settings(warn_only=True,host_string='root@%s' % c.server):
         kill_tcpdump()
         set_channel(c.nic, self.chan)
+        #TODO: have this run in the background, have consistent way of reading from it. Make sure we dont' overfill the disk or anything
         #run_tcpdump(c.nic, self.mac)
 
   def add_collector(self, server,pos=(0,0)):
@@ -149,15 +129,10 @@ class Localizer(object):
 
           #set up defaults
           avg = 0
-          #print 'c.power'
-          #print map(lambda x: (time.time() - x[0],x[1]), c.power)
-          #print
           valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 10]
           size = 10 if len(c.power) >= 10 else len(c.power)
           if not valid_points and c.power:
             valid_points = sorted(c.power,key= lambda x: x[0])[:size]
-          #print 'validpoints'
-          #print valid_points
           if not valid_points:
             print "did you run ./monitor on the routers? Also check wireless channel"
             for c in self.collectors:
@@ -167,7 +142,6 @@ class Localizer(object):
             continue
           else:
             l= zip(*valid_points)
-            #print c.server,l[1]
             avg = float(sum(l[1])) / float(len(l[1]))
           results.append( (c.server,avg,len(valid_points)) )
         print results,'on channel',self.chan
