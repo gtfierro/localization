@@ -4,67 +4,66 @@ import sys
 import numpy as np
 import math
 import pickle
-import lights
+#import lights
 import pygame, sys, os
 from pygame.locals import *
 from prun import *
 from collections import defaultdict
 
 def similarity(tup1, tup2):
-  """
-  closer to 1.0, the more similar
-
-  """
-  a=numpy.array(map(abs,tup1))
-  b=numpy.array(map(abs,tup2))
-  return 1.0 - np.sqrt(np.sum((a-b)**2) / (np.sum(a) * np.sqrt(np.sum(b))))
+    """
+    closer to 1.0, the more similar
+    """
+    a=np.array(map(abs,tup1))
+    b=np.array(map(abs,tup2))
+    return 1.0 - np.sqrt(np.sum((a-b)**2) / (np.sum(a) * np.sqrt(np.sum(b))))
 
 class Collector:
-  def __init__(self, mgr, server, mac, nic = 'wlan0',pos=(0,0)):
-    self.power = []
-    self.mac = mac
-    self.server = server
-    self.nic = nic
-    self.count = 0
-    self.pos = pos
-    self.mgr = mgr
-    self.channels = [1,6,11]
-    self.channel = 0
-    print os.system('ssh root@%s killall -9 tcpdump' % self.server)
-    print os.system('ssh root@%s killall -9 tcpdump' % self.server)
-    self.cmd = cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
-    self.run = CmdRun(mgr, cmd, self._handle_line)
+    def __init__(self, mgr, server, mac, nic = 'wlan0',pos=(0,0)):
+        self.power = []
+        self.mac = mac
+        self.server = server
+        self.nic = nic
+        self.count = 0
+        self.pos = pos
+        self.mgr = mgr
+        self.channels = [1,6,11]
+        self.channel = 0
+        print os.system('ssh root@%s killall -9 tcpdump' % self.server)
+        print os.system('ssh root@%s killall -9 tcpdump' % self.server)
+        self.cmd = cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
+        self.run = CmdRun(mgr, cmd, self._handle_line)
 
-  def _handle_line(self, line):
-    line = line.strip()
-    m = re.search('^(\d+\.\d+) .* (-?\d+)dB .* SA:([0-9a-f:]+) ', line)
-    if m:
-      (time, db, mac) = m.groups()
-      if not self.mac == mac:
-        print "ERROR wrong mac"
-      else:
-        assert (len(self.power) == 0 or float(time) > self.power[-1][0])
-        self.power.append((float(time), int(db)))
-        self.count += 1
+    def _handle_line(self, line):
+        line = line.strip()
+        m = re.search('^(\d+\.\d+) .* (-?\d+)dB .* SA:([0-9a-f:]+) ', line)
+        if m:
+            (time, db, mac) = m.groups()
+            if not self.mac == mac:
+                print "ERROR wrong mac"
+            else:
+                assert (len(self.power) == 0 or float(time) > self.power[-1][0])
+                self.power.append((float(time), int(db)))
+                self.count += 1
 
-  def cycle_channel(self):
-    self.set_channel( self.channels[(self.channels.index(self.channel) + 1) % len(self.channels)])
+    def cycle_channel(self):
+        self.set_channel( self.channels[(self.channels.index(self.channel) + 1) % len(self.channels)])
     
 
-  def set_channel(self, chan):
-    self.channel = chan
-    cmd = 'ssh root@%s "/usr/sbin/iw dev %s set channel %d"' % (self.server, self.nic, chan)
-    print cmd
-    print os.system(cmd)
+    def set_channel(self, chan):
+        self.channel = chan
+        cmd = 'ssh root@%s "/usr/sbin/iw dev %s set channel %d"' % (self.server, self.nic, chan)
+        print cmd
+        print os.system(cmd)
 
-  def kill(self):
-    self.run.kill()
-    cmd = 'ssh root@%s "/usr/bin/killall -9 tcpdump"' % self.server
-    print os.system(cmd)
+    def kill(self):
+        self.run.kill()
+        cmd = 'ssh root@%s "/usr/bin/killall -9 tcpdump"' % self.server
+        print os.system(cmd)
 
-  def restart(self):
-    self.kill()
-    self.run = CmdRun(self.mgr, self.cmd, self._handle_line)
+    def restart(self):
+        self.kill()
+        self.run = CmdRun(self.mgr, self.cmd, self._handle_line)
 
 
 
