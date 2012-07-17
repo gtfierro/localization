@@ -69,103 +69,92 @@ class Collector:
 
 class Localizer(object):
 
-  def __init__(self,chan=11,graphics=False,mac='f8:0c:f3:1d:16:49',fingerprints_file='fingerprints.db'):
-    self.chan = chan
-    self.graphics = graphics
-    self.mac = mac
-    fingerprints = pickle.load(open(fingerprints_file))
-    self.mgr = IOMgr()
-    self.tmpdict = defaultdict(lambda : defaultdict(list))
-    self.collectors = []
-    #initialize collectors
-    self.add_collector( '128.32.156.131',pos=(285,395))
-    self.add_collector( '128.32.156.64', pos=(465,395))
-    self.add_collector( '128.32.156.45', pos=(700,350))
-    self.add_collector( '128.32.156.67', pos=(900,395))
-    #update collector channels
-    for c in self.collectors:
-      c.set_channel(self.chan)
-
-  def add_collector(self, server,pos=(0,0)):
-    self.collectors.append(Collector(self.mgr, server, self.mac, pos=pos))
-
-  def interpolate_pos(self, reading):
-    """
-    reading is a tuple of the readings from collectors A,B,C..
-    """
-    pos = [0,0]
-
-  def flush(self):
-    pickle.dump(self.tmpdict,open('tmpdict.db','wb'))
-
-  def run(self,duration=0,coord=None,loc_index=0):
-    start_time = time.time()
-    if self.graphics:
-      pygame.init()
-      screen = pygame.display.set_mode((1088,800))
-      floor = pygame.image.load(os.path.join("floor4.png"))
-      floor = pygame.transform.scale(floor, (1088,800))
-
-    try:
-      last_restart = time.time()
-      while True:
-        try:
-          self.mgr.poll(1)
-        except Exception as e:
-          print e.stacktrace()
-          raise e
-        time.sleep(1)
-        print
-        results = []
+    def __init__(self,chan=11,graphics=False,mac='f8:0c:f3:1d:16:49',fingerprints_file='fingerprints.db'):
+        self.chan = chan
+        self.graphics = graphics
+        self.mac = mac
+        fingerprints = pickle.load(open(fingerprints_file))
+        self.mgr = IOMgr()
+        self.tmpdict = defaultdict(lambda : defaultdict(list))
+        self.collectors = []
+        #initialize collectors
+        self.add_collector( '128.32.156.131',pos=(285,395))
+        self.add_collector( '128.32.156.64', pos=(465,395))
+        self.add_collector( '128.32.156.45', pos=(700,350))
+        self.add_collector( '128.32.156.67', pos=(900,395))
+        #update collector channels
         for c in self.collectors:
+            c.set_channel(self.chan)
 
-          #last_restart = time.time()
-          #if (60 < time.time() - last_restart):
-          #  for c in self.collectors:
-          #    c.restart()
+    def add_collector(self, server,pos=(0,0)):
+        self.collectors.append(Collector(self.mgr, server, self.mac, pos=pos))
 
-          #set up defaults
-          avg = 0
-          #print 'c.power'
-          #print map(lambda x: (time.time() - x[0],x[1]), c.power)
-          #print
-          valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 10]
-          size = 10 if len(c.power) >= 10 else len(c.power)
-          if not valid_points and c.power:
-            valid_points = sorted(c.power,key= lambda x: x[0])[:size]
-          #print 'validpoints'
-          #print valid_points
-          if not valid_points:
-            print "did you run ./monitor on the routers? Also check wireless channel"
-            for c in self.collectors:
-              c.power = []
-              c.cycle_channel()
-            time.sleep(15)
-            continue
-          else:
-            l= zip(*valid_points)
-            #print c.server,l[1]
-            avg = float(sum(l[1])) / float(len(l[1]))
-          results.append( (c.server,avg,len(valid_points)) )
-        print results,'on channel',self.chan
-        if coord and loc_index:
-          self.tmpdict[loc_index] = (coord, results)
+    def interpolate_pos(self, reading):
+        """
+        reading is a tuple of the readings from collectors A,B,C..
+        """
+        pos = [0,0]
+
+    def flush(self):
+        pickle.dump(self.tmpdict,open('tmpdict.db','wb'))
+
+    def run(self,duration=0,coord=None,loc_index=0):
+        start_time = time.time()
         if self.graphics:
-          #redraw whole screen
-          for c in self.collectors:
-            pygame.draw.circle(floor, (255,0,0), c.pos, 8)
-          #TODO:draw new dot for position
-          #update draw
-          screen.blit(floor,(0,0))
-          pygame.display.flip()
-        #update time
-        if duration:
-          if (time.time() - start_time) > duration:
-            return results
+            pygame.init()
+            screen = pygame.display.set_mode((1088,800))
+            floor = pygame.image.load(os.path.join("floor4.png"))
+            floor = pygame.transform.scale(floor, (1088,800))
 
-    except KeyboardInterrupt:
-      for c in self.collectors:
-        c.kill()
+        try:
+            last_restart = time.time()
+            while True:
+                try:
+                    self.mgr.poll(1)
+                except Exception as e:
+                    print e.stacktrace()
+                    raise e
+                time.sleep(1)
+                print
+                results = []
+                for c in self.collectors:
+
+                    #set up defaults
+                    avg = 0
+                    valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 10]
+                    size = 10 if len(c.power) >= 10 else len(c.power)
+                    if not valid_points and c.power:
+                        valid_points = sorted(c.power,key= lambda x: x[0])[:size]
+                    if not valid_points:
+                        print "did you run ./monitor on the routers? Also check wireless channel"
+                        for c in self.collectors:
+                            c.power = []
+                            c.cycle_channel()
+                        time.sleep(15)
+                        continue
+                    else:
+                        l= zip(*valid_points)
+                        avg = float(sum(l[1])) / float(len(l[1]))
+                results.append( (c.server,avg,len(valid_points)) )
+                print results,'on channel',self.chan
+                if coord and loc_index:
+                    self.tmpdict[loc_index] = (coord, results)
+                if self.graphics:
+                    #redraw whole screen
+                    for c in self.collectors:
+                        pygame.draw.circle(floor, (255,0,0), c.pos, 8)
+                    #TODO:draw new dot for position
+                    #update draw
+                    screen.blit(floor,(0,0))
+                    pygame.display.flip()
+                #update time
+                if duration:
+                    if (time.time() - start_time) > duration:
+                        return results
+
+        except KeyboardInterrupt:
+            for c in self.collectors:
+                c.kill()
 
 def track(chan=11,graphics=False,actuate=False):
   print chan,graphics
