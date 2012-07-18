@@ -9,6 +9,7 @@ import pygame, sys, os
 from pygame.locals import *
 from prun import *
 from collections import defaultdict
+import settings
 
 def similarity(tup1, tup2):
     """
@@ -27,7 +28,7 @@ class Collector:
         self.count = 0
         self.pos = pos
         self.mgr = mgr
-        self.channels = [1,6,11]
+        self.channels = settings.CHANNELS
         self.channel = 0
         print os.system('ssh root@%s killall -9 tcpdump' % self.server)
         print os.system('ssh root@%s killall -9 tcpdump' % self.server)
@@ -78,10 +79,8 @@ class Localizer(object):
         self.tmpdict = defaultdict(lambda : defaultdict(list))
         self.collectors = []
         #initialize collectors
-        self.add_collector( '128.32.156.131',pos=(285,395))
-        self.add_collector( '128.32.156.64', pos=(465,395))
-        self.add_collector( '128.32.156.45', pos=(700,350))
-        self.add_collector( '128.32.156.67', pos=(900,395))
+        for collector in settings.COLLECTORS:
+            self.add_collector(collector['mac'], pos=collector['pos'])
         #update collector channels
         for c in self.collectors:
             c.set_channel(self.chan)
