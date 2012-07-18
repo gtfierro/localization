@@ -157,48 +157,48 @@ class Localizer(object):
                 c.kill()
 
 def track(chan=11,graphics=False,actuate=False):
-  print chan,graphics
-  l = Localizer(chan = chan, graphics = graphics)
+    print chan,graphics
+    l = Localizer(chan = chan, graphics = graphics)
 
-  argmax = lambda x: max(x, key=lambda y: y[1])[0]
+    argmax = lambda x: max(x, key=lambda y: y[1])[0]
 
-  last_restart = time.time()
-  last_switch = time.time()
-  time.sleep(15)
-  last = None
-  lookup = {'128.32.156.131': 'Zone1',
-            '128.32.156.64' : 'Zone2',
-            '128.32.156.45' : 'Zone3',
-           }
-  while True:
-    try:
-      if (120 < time.time() - last_restart):
-        last_restart = time.time()
-        for c in l.collectors:
-          c.restart()
-      closest = argmax(l.run(1))
-      print closest
-      if actuate:
-        print lights.get_level(lookup[closest]),'to',lights.set_level(lookup[closest],3)
-        if last:
-          if last != lookup[closest]:
-            print lights.set_level(last,1)
-        print lookup[closest], 'now',lights.get_level(lookup[closest])
-        last = lookup[closest]
+    last_restart = time.time()
+    last_switch = time.time()
+    time.sleep(15)
+    last = None
+    lookup = {'128.32.156.131': 'Zone1',
+              '128.32.156.64' : 'Zone2',
+              '128.32.156.45' : 'Zone3',
+             }
+    while True:
+        try:
+            if (120 < time.time() - last_restart):
+                last_restart = time.time()
+                for c in l.collectors:
+                    c.restart()
+            closest = argmax(l.run(1))
+            print closest
+            if actuate:
+                print lights.get_level(lookup[closest]),'to',lights.set_level(lookup[closest],3)
+                if last:
+                    if last != lookup[closest]:
+                        print lights.set_level(last,1)
+                print lookup[closest], 'now',lights.get_level(lookup[closest])
+                last = lookup[closest]
 
-    except KeyboardInterrupt:
-      for c in l.collectors:
-        c.kill()
-      break
+        except KeyboardInterrupt:
+            for c in l.collectors:
+                c.kill()
+            break
 
 def main(graphics=False):
-  if len(sys.argv) > 2:
-    chan = int(sys.argv[1])
-  else:
-    chan = 11
-  print chan,graphics
-  l = Localizer(chan = chan, graphics = graphics)
-  l.run(90)
+    if len(sys.argv) > 2:
+        chan = int(sys.argv[1])
+    else:
+        chan = 11
+    print chan,graphics
+    l = Localizer(chan = chan, graphics = graphics)
+    l.run(90)
 
 if __name__ == '__main__':
-  main()
+    main()
