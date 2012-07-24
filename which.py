@@ -9,30 +9,9 @@ import pygame, sys, os
 from pygame.locals import *
 from prun import *
 from collections import defaultdict
-from fabric.api import *
 
 #for fabric
 channels = [1,6,11]
-@parallel
-def parallel_uname():
-  run('uname',shell=False)
-
-@parallel
-def kill_tcpdump():
-  run('killall -9 tcpdump',shell=False)
-
-@parallel
-def run_tcpdump(nic,mac):
-  run('tcpdump -tt -l -e -i %s ether src %s' % (nic, mac),shell=False)
-
-@parallel
-def set_channel(nic,chan):
-  run('/usr/sbin/iw dev %s set channel %d' % (nic, chan), shell=False)
-
-@parallel
-def cycle_channel(nic, cur_chan):
-  set_channel(nic, channels[(channels.index(cur_chan) + 1) % len(channels)])
-
 def similarity(tup1, tup2):
   """
   closer to 1.0, the more similar
@@ -53,6 +32,8 @@ class Collector:
     self.mgr = mgr
     self.channels = [1,6,11]
     self.channel = 0
+    self.cmd = 'ssh root@%s, "usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
+    self.run = CmdRun(mgr, self.cmd, self._handle_line)
 
   def _handle_line(self, line):
     line = line.strip()
@@ -81,13 +62,10 @@ class Localizer(object):
     self.add_collector( '128.32.156.64', pos=(465,395))
     self.add_collector( '128.32.156.45', pos=(700,350))
     self.add_collector( '128.32.156.67', pos=(900,395))
+    #setup collector settings on routers
+    os.system('fab kill_tcpdump')
     #update collector channels
-    for c in self.collectors:
-      with settings(warn_only=True,host_string='root@%s' % c.server):
-        kill_tcpdump()
-        set_channel(c.nic, self.chan)
-        #TODO: have this run in the background, have consistent way of reading from it. Make sure we dont' overfill the disk or anything
-        #run_tcpdump(c.nic, self.mac)
+    os.system('fab set_channel:nic=%s,chan=%s' % ('wlan0',self.chan))
 
   def add_collector(self, server,pos=(0,0)):
     self.collectors.append(Collector(self.mgr, server, self.mac, pos=pos))
@@ -137,7 +115,7 @@ class Localizer(object):
             print "did you run ./monitor on the routers? Also check wireless channel"
             for c in self.collectors:
               c.power = []
-              c.cycle_channel()
+            os.system('fab set_channel:nic=wlan0,chan=%s' % channels[(channels.index(self.chan) + 1 ) % len(channels)])
             time.sleep(15)
             continue
           else:
@@ -165,7 +143,7 @@ class Localizer(object):
         c.kill()
 
 def track(chan=11,graphics=False,actuate=False):
-  print chan,graphics
+  print 'On Channel:',chan,'\nUsing Graphics:',graphics
   l = Localizer(chan = chan, graphics = graphics)
 
   argmax = lambda x: max(x, key=lambda y: y[1])[0]
