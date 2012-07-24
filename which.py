@@ -11,6 +11,8 @@ from prun import *
 from collections import defaultdict
 import settings
 
+#for fabric
+channels = [1,6,11]
 def similarity(tup1, tup2):
     """
     closer to 1.0, the more similar
@@ -20,20 +22,18 @@ def similarity(tup1, tup2):
     return 1.0 - np.sqrt(np.sum((a-b)**2) / (np.sum(a) * np.sqrt(np.sum(b))))
 
 class Collector:
-    def __init__(self, mgr, server, mac, nic = 'wlan0',pos=(0,0)):
-        self.power = []
-        self.mac = mac
-        self.server = server
-        self.nic = nic
-        self.count = 0
-        self.pos = pos
-        self.mgr = mgr
-        self.channels = settings.CHANNELS
-        self.channel = 0
-        print os.system('ssh root@%s killall -9 tcpdump' % self.server)
-        print os.system('ssh root@%s killall -9 tcpdump' % self.server)
-        self.cmd = cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
-        self.run = CmdRun(mgr, cmd, self._handle_line)
+  def __init__(self, mgr, server, mac, nic = 'wlan0',pos=(0,0)):
+    self.power = []
+    self.mac = mac
+    self.server = server
+    self.nic = nic
+    self.count = 0
+    self.pos = pos
+    self.mgr = mgr
+    self.channels = [1,6,11]
+    self.channel = 0
+    self.cmd = 'ssh root@%s, "usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
+    self.run = CmdRun(mgr, self.cmd, self._handle_line)
 
     def _handle_line(self, line):
         line = line.strip()
@@ -47,43 +47,25 @@ class Collector:
                 self.power.append((float(time), int(db)))
                 self.count += 1
 
-    def cycle_channel(self):
-        self.set_channel( self.channels[(self.channels.index(self.channel) + 1) % len(self.channels)])
-    
-
-    def set_channel(self, chan):
-        self.channel = chan
-        cmd = 'ssh root@%s "/usr/sbin/iw dev %s set channel %d"' % (self.server, self.nic, chan)
-        print cmd
-        print os.system(cmd)
-
-    def kill(self):
-        self.run.kill()
-        cmd = 'ssh root@%s "/usr/bin/killall -9 tcpdump"' % self.server
-        print os.system(cmd)
-
-    def restart(self):
-        self.kill()
-        self.run = CmdRun(self.mgr, self.cmd, self._handle_line)
-
-
-
 class Localizer(object):
 
-    def __init__(self,chan=11,graphics=False,mac='f8:0c:f3:1d:16:49',fingerprints_file='fingerprints.db'):
-        self.chan = chan
-        self.graphics = graphics
-        self.mac = mac
-        fingerprints = pickle.load(open(fingerprints_file))
-        self.mgr = IOMgr()
-        self.tmpdict = defaultdict(lambda : defaultdict(list))
-        self.collectors = []
-        #initialize collectors
-        for collector in settings.COLLECTORS:
-            self.add_collector(collector['mac'], pos=collector['pos'])
-        #update collector channels
-        for c in self.collectors:
-            c.set_channel(self.chan)
+  def __init__(self,chan=11,graphics=False,mac='f8:0c:f3:1d:16:49',fingerprints_file='fingerprints.db'):
+    self.chan = chan
+    self.graphics = graphics
+    self.mac = mac
+    fingerprints = pickle.load(open(fingerprints_file))
+    self.mgr = IOMgr()
+    self.tmpdict = defaultdict(lambda : defaultdict(list))
+    self.collectors = []
+    #initialize collectors
+    self.add_collector( '128.32.156.131',pos=(285,395))
+    self.add_collector( '128.32.156.64', pos=(465,395))
+    self.add_collector( '128.32.156.45', pos=(700,350))
+    self.add_collector( '128.32.156.67', pos=(900,395))
+    #setup collector settings on routers
+    os.system('fab kill_tcpdump')
+    #update collector channels
+    os.system('fab set_channel:nic=%s,chan=%s' % ('wlan0',self.chan))
 
     def add_collector(self, server,pos=(0,0)):
         self.collectors.append(Collector(self.mgr, server, self.mac, pos=pos))
@@ -151,13 +133,42 @@ class Localizer(object):
                     if (time.time() - start_time) > duration:
                         return results
 
-        except KeyboardInterrupt:
+          #set up defaults
+          avg = 0
+          valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 10]
+          size = 10 if len(c.power) >= 10 else len(c.power)
+          if not valid_points and c.power:
+            valid_points = sorted(c.power,key= lambda x: x[0])[:size]
+          if not valid_points:
+            print "did you run ./monitor on the routers? Also check wireless channel"
             for c in self.collectors:
-                c.kill()
+              c.power = []
+            os.system('fab set_channel:nic=wlan0,chan=%s' % channels[(channels.index(self.chan) + 1 ) % len(channels)])
+            time.sleep(15)
+            continue
+          else:
+            l= zip(*valid_points)
+            avg = float(sum(l[1])) / float(len(l[1]))
+          results.append( (c.server,avg,len(valid_points)) )
+        print results,'on channel',self.chan
+        if coord and loc_index:
+          self.tmpdict[loc_index] = (coord, results)
+        if self.graphics:
+          #redraw whole screen
+          for c in self.collectors:
+            pygame.draw.circle(floor, (255,0,0), c.pos, 8)
+          #TODO:draw new dot for position
+          #update draw
+          screen.blit(floor,(0,0))
+          pygame.display.flip()
+        #update time
+        if duration:
+          if (time.time() - start_time) > duration:
+            return results
 
 def track(chan=11,graphics=False,actuate=False):
-    print chan,graphics
-    l = Localizer(chan = chan, graphics = graphics)
+  print 'On Channel:',chan,'\nUsing Graphics:',graphics
+  l = Localizer(chan = chan, graphics = graphics)
 
     argmax = lambda x: max(x, key=lambda y: y[1])[0]
 
