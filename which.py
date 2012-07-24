@@ -165,10 +165,11 @@ def track(chan=11,graphics=False,actuate=False):
     last_switch = time.time()
     time.sleep(15)
     last = None
-    lookup = {'128.32.156.131': 'Zone1',
-              '128.32.156.64' : 'Zone2',
-              '128.32.156.45' : 'Zone3',
-             }
+
+    lookup = {}
+    for collector in l.collectors:
+        lookup[collector.mac] = 'Zone' + collector.zone
+
     while True:
         try:
             if (120 < time.time() - last_restart):
