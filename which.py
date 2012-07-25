@@ -11,6 +11,8 @@ from prun import *
 from collections import defaultdict
 import settings
 
+#for fabric
+channels = [1,6,11]
 def similarity(tup1, tup2):
     """
     closer to 1.0, the more similar
@@ -28,12 +30,10 @@ class Collector:
         self.count = 0
         self.pos = pos
         self.mgr = mgr
-        self.channels = settings.CHANNELS
+        self.channels = [1,6,11]
         self.channel = 0
-        print os.system('ssh root@%s killall -9 tcpdump' % self.server)
-        print os.system('ssh root@%s killall -9 tcpdump' % self.server)
-        self.cmd = cmd = 'ssh root@%s "/usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
-        self.run = CmdRun(mgr, cmd, self._handle_line)
+        self.cmd = 'ssh root@%s, "usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
+        self.run = CmdRun(mgr, self.cmd, self._handle_line)
 
     def _handle_line(self, line):
         line = line.strip()
@@ -47,27 +47,6 @@ class Collector:
                 self.power.append((float(time), int(db)))
                 self.count += 1
 
-    def cycle_channel(self):
-        self.set_channel( self.channels[(self.channels.index(self.channel) + 1) % len(self.channels)])
-    
-
-    def set_channel(self, chan):
-        self.channel = chan
-        cmd = 'ssh root@%s "/usr/sbin/iw dev %s set channel %d"' % (self.server, self.nic, chan)
-        print cmd
-        print os.system(cmd)
-
-    def kill(self):
-        self.run.kill()
-        cmd = 'ssh root@%s "/usr/bin/killall -9 tcpdump"' % self.server
-        print os.system(cmd)
-
-    def restart(self):
-        self.kill()
-        self.run = CmdRun(self.mgr, self.cmd, self._handle_line)
-
-
-
 class Localizer(object):
 
     def __init__(self,chan=11,graphics=False,mac='f8:0c:f3:1d:16:49',fingerprints_file='fingerprints.db'):
@@ -79,11 +58,15 @@ class Localizer(object):
         self.tmpdict = defaultdict(lambda : defaultdict(list))
         self.collectors = []
         #initialize collectors
-        for collector in settings.COLLECTORS:
-            self.add_collector(collector['mac'], pos=collector['pos'])
+        self.add_collector( '128.32.156.131',pos=(285,395))
+        self.add_collector( '128.32.156.64', pos=(465,395))
+        self.add_collector( '128.32.156.45', pos=(700,350))
+        self.add_collector( '128.32.156.67', pos=(900,395))
+        #setup collector settings on routers
+        os.system('fab kill_tcpdump')
+        os.system('fab set_monitor')
         #update collector channels
-        for c in self.collectors:
-            c.set_channel(self.chan)
+        os.system('fab set_channel:nic=%s,chan=%s' % ('wlan0',self.chan))
 
     def add_collector(self, server,pos=(0,0)):
         self.collectors.append(Collector(self.mgr, server, self.mac, pos=pos))
@@ -111,11 +94,11 @@ class Localizer(object):
                 try:
                     self.mgr.poll(1)
                 except Exception as e:
-                    print e.stacktrace()
                     raise e
                 time.sleep(1)
                 print
                 results = []
+                break_now = False
                 for c in self.collectors:
 
                     #set up defaults
@@ -128,12 +111,15 @@ class Localizer(object):
                         print "did you run ./monitor on the routers? Also check wireless channel"
                         for c in self.collectors:
                             c.power = []
-                            c.cycle_channel()
+                        os.system('fab set_channel:nic=wlan0,chan=%s' % self.channels[(self.channels.index(self.chan) + 1) % len(self.channels)])
                         time.sleep(15)
+                        break_now = True
                         continue
                     else:
                         l= zip(*valid_points)
                         avg = float(sum(l[1])) / float(len(l[1]))
+                if break_now:
+                    continue
                 results.append( (c.server,avg,len(valid_points)) )
                 print results,'on channel',self.chan
                 if coord and loc_index:
@@ -152,11 +138,11 @@ class Localizer(object):
                         return results
 
         except KeyboardInterrupt:
-            for c in self.collectors:
+            for c in l.collectors:
                 c.kill()
 
 def track(chan=11,graphics=False,actuate=False):
-    print chan,graphics
+    print 'On Channel:',chan,'\nUsing Graphics:',graphics
     l = Localizer(chan = chan, graphics = graphics)
 
     argmax = lambda x: max(x, key=lambda y: y[1])[0]
@@ -167,8 +153,8 @@ def track(chan=11,graphics=False,actuate=False):
     last = None
 
     lookup = {}
-    for collector in l.collectors:
-        lookup[collector.mac] = 'Zone' + collector.zone
+#    for collector in l.collectors:
+#        lookup[collector.mac] = 'Zone' + collector.zone
 
     while True:
         try:
