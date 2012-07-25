@@ -13,7 +13,6 @@ def kill_tcpdump():
   run('/usr/bin/killall -9 tcpdump',shell=False)
 
 @parallel
-<<<<<<< HEAD
 def set_monitor():
   run('/usr/sbin/iw dev wlan0 del',shell=False)
   run('/usr/sbin/iw phy phy0 interface add wlan0 type monitor',shell=False)
@@ -21,8 +20,6 @@ def set_monitor():
   run('/sbin/ifconfig wlan0 up',shell=False)
 
 @parallel
-=======
->>>>>>> 2f72528aa9facd09ff357fba294125cfcbe9e675
 def set_channel(nic='nic',chan='chan'):
   chan=int(chan)
   run('/usr/sbin/iw dev %s set channel %d' % (nic, chan), shell=False)
