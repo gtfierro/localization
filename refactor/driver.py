@@ -54,12 +54,12 @@ class Localizer:
             with open('../demo/zone.json','wb') as f:
               d = {'zone': zone+1}
               json.dump(d,f)
-            print zone, avgs
+            print zone+1, avgs
 
-            if sum(counts) == 0:
-                self._next_channel()
-                # Timeout to start tcpdump
-                time.sleep(3)
+#            if sum(counts) == 0:
+#                self._next_channel()
+#                # Timeout to start tcpdump
+#                time.sleep(3)
 
 if __name__ == '__main__':
     l = Localizer()
