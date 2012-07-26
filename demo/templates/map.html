@@ -1,12 +1,22 @@
 <head>
     <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js" type="text/javascript"></script>
-    <script src="js/jquery.maphilight.js" type="text/javascript"></script>
+    <script src="static/jquery.maphilight.js" type="text/javascript"></script>
+    <script src="static/actuation.js" type="text/javascript"></script>
     <script>
         $(document).ready(function() {
             $('img[usemap]').maphilight();
+            current_zone = 0;
+            last_reading = 0;
             setInterval(function () {
-              $.getJSON("zone.json", function(data) {clear_highlight(); draw_highlight('#' + data['zone'])});
+              $.getJSON("static/zone.json", function(data) {
+                if (data['time'] != last_reading) {
+                  clear_highlight();
+                  draw_highlight('#' + data['zone']);
+                  current_zone = data['zone'];
+                  last_reading = data['time'];
+                }
+              }
             }, 1000);
         });
     </script>
@@ -14,7 +24,7 @@
 <html>
     <body>
         <div id="mapfloor4" class="themaps">
-            <img class="map" src="img/floor4.png" border="0" usemap="#zones" />
+            <img class="map" src="static/floor4.png" border="0" usemap="#zones" />
             <map name="zones">
                 <area id="1" shape="rect" coords="6, 81, 80, 208" alt="Zone1" />
                 <area id="2" shape="rect" coords="85, 81, 170, 170" alt="Zone2" />
@@ -23,5 +33,12 @@
                 <area id="5" shape="rect" coords="460, 81, 524, 208" alt="Zone5" />
             </map>
         </div>
+        <div style="margin-top: 20px;">
+            <input id="follow" type="checkbox">
+                Have the lights follow you?
+            </input>
+            <button id="actuate">
+                Turn on the lights in your zone
+            </button>
     </body>
 </html>
