@@ -60,14 +60,20 @@ class Localizer:
             # Sample for n seconds
             self.mgr.poll(3)
             (medians, counts) = self._median_signals()
-            zone = medians.index(max(medians))+1
+            zone = medians.index(max(medians))+2
+            #conditions for zone 1:
+            #   - zone==2 (from medians)
+            #   - medians[2] (3rd one) is the 3rd (or 4th) highest
+            #   - 
+            #if zone == 2 and medians[2] < medians[1] and medians[2] < medians[0] and medians[0] < -45:
+            #  zone = 1
             #(avgs, counts) = self._average_signals()
             #zone = avgs.index(max(avgs))+1
             with open('../demo/zone.json','wb') as f:
-              d = {'zone': zone+1}
+              d = {'zone': zone}
               json.dump(d,f)
-            #print zone+1, avgs
-            print zone+1, medians
+            #print zone, avgs
+            print zone, medians
 
 if __name__ == '__main__':
     l = Localizer()
