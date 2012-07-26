@@ -71,8 +71,8 @@ class Localizer:
 
             #(avgs, counts) = self._average_signals()
             #zone = avgs.index(max(avgs))+1
-            with open('../demo/zone.json','wb') as f:
-              d = {'zone': zone}
+            with open('../demo/static/zone.json','wb') as f:
+              d = {'zone': zone, 'time': int(time.time())}
               json.dump(d,f)
 
             #print zone, avgs

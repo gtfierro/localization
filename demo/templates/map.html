@@ -10,13 +10,14 @@
             last_reading = 0;
             setInterval(function () {
               $.getJSON("static/zone.json", function(data) {
+                console.log(data);
                 if (data['time'] != last_reading) {
                   clear_highlight();
                   draw_highlight('#' + data['zone']);
                   current_zone = data['zone'];
                   last_reading = data['time'];
                 }
-              }
+              });
             }, 1000);
         });
     </script>
