@@ -10,6 +10,9 @@ class IOMgr:
   def register(self, fd, handler):
     self.readmap[fd] = handler
 
+  def deregister(self,fd):
+    print self.readmap.pop(fd)
+
   def poll(self, timeout):
     if not self.readmap:
       return
@@ -25,20 +28,29 @@ class IOMgr:
       timeout = timeout - elapsed
 
 class CmdRun:
-  def __init__(self, mgr, cmd, handle_line):
+  def __init__(self, mgr, cmd, handler):
     self.buf = bytes()
-    self.handle_line = handle_line
+    self.handler = handler
     self.p = pexpect.spawn(cmd)
-    mgr.register(self.p.fileno(), self._handle_data)
+    self.mgr = mgr
+    self.mgr.register(self.p.fileno(), self._handle_data)
 
   def _handle_data(self, fd):
-    tbuf = os.read(fd, 1024*1024)
+    try:
+        tbuf = os.read(fd, 1024*1024)
+    except OSError, e:
+        print "Connection closed (%s)" % self.handler
+        raise e
+
     self.buf += tbuf
     pos = self.buf.find('\r\n')
     while pos > -1:
-      self.handle_line(self.buf[:pos])
+      self.handler.handle_line(self.buf[:pos])
       self.buf = self.buf[pos+2:]
       pos = self.buf.find('\r\n')
 
   def kill(self):
+    print 'killing',self.p.fileno()
+    self.mgr.deregister(self.p.fileno())
+    print self.mgr.readmap,"<-- should be empty"
     self.p.close()
