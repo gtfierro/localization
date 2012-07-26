@@ -52,6 +52,8 @@ class Localizer:
 
     def run(self):
         for c in self.collectors:
+            c.start_channel_cycle()
+        for c in self.collectors:
             c.start()
         # Timeout to start tcpdump
         time.sleep(3)
