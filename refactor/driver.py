@@ -35,12 +35,24 @@ class Localizer:
                 avgs.append(numpy.mean(data, 0)[1])
         return (avgs, counts)
 
-    def _next_channel(self):
-        self.chan_idx = (self.chan_idx + 1) % len(self.channels)
+    def _median_signals(self):
+        medians = []
+        counts = []
         for c in self.collectors:
-            c.set_channel(self.channels[self.chan_idx])
+            data = c.get_data()
+            c.clear_data()
+
+            counts.append(len(data))
+            if len(data) == 0:
+                medians.append(float('-inf'))
+            else:
+                data = map(lambda x: x[1], data)
+                medians.append(data[len(data) / 2])
+        return (medians, counts)
 
     def run(self):
+        for c in self.collectors:
+            c.start_channel_cycle()
         for c in self.collectors:
             c.start()
         # Timeout to start tcpdump
@@ -49,17 +61,21 @@ class Localizer:
         while True:
             # Sample for n seconds
             self.mgr.poll(3)
-            (avgs, counts) = self._average_signals()
-            zone = avgs.index(max(avgs))+1
+            (medians, counts) = self._median_signals()
+            zone = medians.index(max(medians))+2
+            #conditions for zone 1:
+            #   - zone==2 (from medians)
+            #   - medians[2] (3rd one) is the 3rd (or 4th) highest
+            #   - 
+            #if zone == 2 and medians[2] < medians[1] and medians[2] < medians[0] and medians[0] < -45:
+            #  zone = 1
+            #(avgs, counts) = self._average_signals()
+            #zone = avgs.index(max(avgs))+1
             with open('../demo/zone.json','wb') as f:
-              d = {'zone': zone+1}
+              d = {'zone': zone}
               json.dump(d,f)
-            print zone+1, avgs
-
-#            if sum(counts) == 0:
-#                self._next_channel()
-#                # Timeout to start tcpdump
-#                time.sleep(3)
+            #print zone, avgs
+            print zone, medians
 
 if __name__ == '__main__':
     l = Localizer()

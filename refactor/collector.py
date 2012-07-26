@@ -1,4 +1,5 @@
 from prun import CmdRun, IOMgr
+import os
 import re
 
 class Collector:
@@ -21,12 +22,10 @@ class Collector:
     def clear_data(self):
         self.power = []
 
-    def set_channel(self, channel):
-        self.channel = channel
-        if self.run:
-            self.run.kill()
-            self.run = None
-        self.start()
+    def start_channel_cycle(self):
+        cmd = 'ssh root@%s "killall -9 sh ; sh cycle.sh &"' % self.server
+        run = CmdRun(self.mgr, cmd, self._handle_line)
+        print 'cycling channels on',self.server
         
     def start(self):
         if self.run:
