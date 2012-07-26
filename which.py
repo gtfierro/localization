@@ -126,9 +126,11 @@ class Localizer(object):
                 for c in self.collectors:
                     #set up defaults
                     avg = 0
-                    valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 5]
-                    if not valid_points:
-                        valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 10]
+                    time_frame = 5
+                    valid_points = []
+                    while not valid_points and time_frame < 30:
+                        valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - time_frame]
+                        time_frame += 5
                     if not valid_points:
                         results.append( (c.server, float('-inf'), 0 ) )
                     else:
