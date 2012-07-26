@@ -1,6 +1,0 @@
-mac = '90:27:e4:f6:49:12' #andrew mac
-mac = '00:26:bb:00:2f:df' #gabe mac
-mac = '0c:df:a4:5e:1b:91' #gabe phone mac
-mac = 'f8:0c:f3:1d:16:49' #andrew verizon mac
-mac = 'b4:74:9f:c1:2b:dd' #nikita mac
-mac = '00:26:26:4b:10:8e' #omar mac
