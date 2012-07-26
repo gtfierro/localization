@@ -2,6 +2,7 @@ from collector import Collector
 from prun import IOMgr
 import numpy
 import time
+import json
 
 class Localizer:
     def __init__(self, search_mac = 'f8:0c:f3:1d:16:49', channels = [1,6,11]):
@@ -34,13 +35,25 @@ class Localizer:
                 avgs.append(numpy.mean(data, 0)[1])
         return (avgs, counts)
 
-    def _next_channel(self):
-        self.chan_idx = (self.chan_idx + 1) % len(self.channels)
-        print "Change channel to", self.channels[self.chan_idx]
+    def _median_signals(self):
+        medians = []
+        counts = []
+
         for c in self.collectors:
-            c.set_channel(self.channels[self.chan_idx])
+            data = c.get_data()
+            c.clear_data()
+
+            counts.append(len(data))
+            if len(data) == 0:
+                medians.append(float('-inf'))
+            else:
+                data = map(lambda x: x[1], data)
+                medians.append(data[len(data) / 2])
+        return (medians, counts)
 
     def run(self):
+        for c in self.collectors:
+            c.start_channel_cycle()
         for c in self.collectors:
             c.start()
         time.sleep(3) # Initialization time
@@ -53,18 +66,17 @@ class Localizer:
         while True:
             # Sample for n seconds
             self.mgr.poll(sample_period)
-            (avgs, counts) = self._average_signals()
+            (medians, counts) = self._median_signals()
+            zone = medians.index(max(medians))+2
 
-            if sum(counts) == 0:
-                no_data_count += sample_period
-                if no_data_count > 10:
-                    self._next_channel()
-                    time.sleep(3) # Initialization time
-                    no_data_count = 0
-            else:
-                no_data_count = 0
-                zone = avgs.index(max(avgs)) + 1
-                print zone, avgs
+            #(avgs, counts) = self._average_signals()
+            #zone = avgs.index(max(avgs))+1
+            with open('../demo/static/zone.json','wb') as f:
+              d = {'zone': zone}
+              json.dump(d,f)
+
+            #print zone, avgs
+            print zone, medians
 
 if __name__ == '__main__':
     l = Localizer()

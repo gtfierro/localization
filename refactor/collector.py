@@ -1,4 +1,5 @@
 from prun import CmdRun, IOMgr
+import os
 import re
 
 class Collector:
@@ -21,18 +22,11 @@ class Collector:
     def clear_data(self):
         self.power = []
 
-    def set_channel(self, channel):
-        self.channel = channel
-        if self.run:
-            self.run.kill()
-            self.run = None
-       
-        cmds = ['/usr/bin/killall -9 tcpdump',
-               '/usr/sbin/iw dev wlan0 set channel %d' % self.channel,
-               '/usr/sbin/tcpdump -tt -l -e -i %s ether src %s' % (self.nic, self.search_mac)]
-        cmd = 'ssh root@%s "%s"' % (self.server, ';'.join(cmds))
-        self.run = CmdRun(self.mgr, cmd, self._handle_line)
-
+    def start_channel_cycle(self):
+        cmd = 'ssh root@%s "killall -9 sh ; sh cycle.sh &"' % self.server
+        run = CmdRun(self.mgr, cmd, self._handle_line)
+        print 'cycling channels on',self.server
+        
     def start(self):
         if self.run:
             raise Exception('Controller already running')
