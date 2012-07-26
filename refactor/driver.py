@@ -59,7 +59,7 @@ class Localizer:
         time.sleep(3) # Initialization time
 
         # Collect packets over sample_period seconds
-        sample_period = 3
+        sample_period = 2
         # No data for last no_data_count seconds 
         no_data_count = 0
 
@@ -71,12 +71,12 @@ class Localizer:
 
             #(avgs, counts) = self._average_signals()
             #zone = avgs.index(max(avgs))+1
-            with open('../demo/static/zone.json','wb') as f:
+            with open('../demo/zone.json','wb') as f:
               d = {'zone': zone}
               json.dump(d,f)
 
             #print zone, avgs
-            print zone, medians
+            print zone, medians, sum(counts)
 
 if __name__ == '__main__':
     l = Localizer()

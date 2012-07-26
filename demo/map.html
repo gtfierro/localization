@@ -6,7 +6,7 @@
         $(document).ready(function() {
             $('img[usemap]').maphilight();
             setInterval(function () {
-              $.getJSON("http://localhost:8080/zone.json", function(data) {clear_highlight(); draw_highlight('#' + data['zone'])});
+              $.getJSON("zone.json", function(data) {clear_highlight(); draw_highlight('#' + data['zone'])});
             }, 1000);
         });
     </script>
