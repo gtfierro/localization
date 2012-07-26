@@ -123,7 +123,9 @@ class Localizer(object):
                         print "did you run ./monitor on the routers? Also check wireless channel"
                         for c in self.collectors:
                             c.power = []
-                        os.system('fab set_channel:nic=wlan0,chan=%s' % c.channels[(c.channels.index(self.chan) + 1) % len(c.channels)])
+                        self.chan = channels[(channels.index(self.chan) + 2) % len(channels)]
+                        os.system('fab set_channel:nic=wlan0,chan=%s' % self.chan)
+
                         time.sleep(15)
                         break_now = True
                         continue
