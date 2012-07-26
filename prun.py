@@ -10,6 +10,9 @@ class IOMgr:
   def register(self, fd, handler):
     self.readmap[fd] = handler
 
+  def deregister(self,fd):
+    self.readmap.pop(fd)
+
   def poll(self, timeout):
     if not self.readmap:
       return
@@ -29,7 +32,8 @@ class CmdRun:
     self.buf = bytes()
     self.handler = handler
     self.p = pexpect.spawn(cmd)
-    mgr.register(self.p.fileno(), self._handle_data)
+    self.mgr = mgr
+    self.mgr.register(self.p.fileno(), self._handle_data)
 
   def _handle_data(self, fd):
     try:
@@ -46,4 +50,6 @@ class CmdRun:
       pos = self.buf.find('\r\n')
 
   def kill(self):
+    self.mgr.deregister(self.p.fileno())
+    print self.mgr.readmap,"<-- should be empty"
     self.p.close()
