@@ -7,23 +7,25 @@ import appstack
 app = Flask(__name__, static_folder='static')
 a = appstack.Appstack('local', '410soda', url='http://128.32.156.60:8000')
 
+uuid = {}
+
 @app.route('/')
 def main():
     return render_template('map.html')
 
 @app.route('/off/<zone>')
 def off(zone):
-    a('.LIG < !Zone %s < !Floor 4 < !Sutardja Dai Hall' % zone)[0].set_level(1)
+    uuid[zone].set_level(1)
     return '1'
 
 @app.route('/on/<zone>')
 def on(zone):
-    a('.LIG < !Zone %s < !Floor 4 < !Sutardja Dai Hall' % zone)[0].set_level(3)
+    uuid[zone].set_level(3)
     return '1'
 
 if __name__ == '__main__':
   for l in a('.LIG < !Floor 4 < !Sutardja Dai Hall'):
-    
+    uuid[l.name[-1]] = l
     l.set_level(3)
 
   port = int(os.environ.get('PORT', 8001))
