@@ -53,6 +53,6 @@ class Collector:
                 assert (len(self.power) == 0 or float(time) > self.power[-1][0])
                 self.power.append((float(time), int(db)))
                 self.count += 1
-        #else:
-        #    print "UNKNOWN RESPONSE (from %s): %s" % (self.server, line)
+        else:
+            print "UNKNOWN RESPONSE (from %s): %s" % (self.server, line)
 
