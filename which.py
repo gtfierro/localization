@@ -32,10 +32,18 @@ class Collector:
         self.mgr = mgr
         self.channels = [1,6,11]
         self.channel = 0
-        self.cmd = 'ssh root@%s, "usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, nic, mac)
-        self.run = CmdRun(mgr, self.cmd, self._handle_line)
 
-    def _handle_line(self, line):
+        cmds = ['/usr/bin/killall -9 tcpdump',
+                '/usr/sbin/iw dev wlan0 del',
+                '/usr/sbin/iw phy phy0 interface add wlan0 type monitor',
+                '/usr/sbin/iw dev wlan0 set txpower fixed 0',
+                '/sbin/ifconfig wlan0 up']
+
+        self.cmd = 'ssh root@%s "%s; /usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, ';'.join(cmds),  nic, mac)
+        print self.cmd
+        self.run = CmdRun(mgr, self.cmd, self)
+
+    def handle_line(self, line):
         line = line.strip()
         m = re.search('^(\d+\.\d+) .* (-?\d+)dB .* SA:([0-9a-f:]+) ', line)
         if m:
@@ -46,7 +54,11 @@ class Collector:
                 assert (len(self.power) == 0 or float(time) > self.power[-1][0])
                 self.power.append((float(time), int(db)))
                 self.count += 1
+        else:
+            print "UNKNOWN RESPONSE (from %s): %s" % (self.server, line)
 
+    def __str__(self):
+        return self.server
 class Localizer(object):
 
     def __init__(self,chan=11,graphics=False,mac='f8:0c:f3:1d:16:49',fingerprints_file='fingerprints.db'):
@@ -63,8 +75,8 @@ class Localizer(object):
         self.add_collector( '128.32.156.45', pos=(700,350))
         self.add_collector( '128.32.156.67', pos=(900,395))
         #setup collector settings on routers
-        os.system('fab kill_tcpdump')
-        os.system('fab set_monitor')
+        #os.system('fab kill_tcpdump')
+        #os.system('fab set_monitor')
         #update collector channels
         os.system('fab set_channel:nic=%s,chan=%s' % ('wlan0',self.chan))
 
@@ -111,7 +123,7 @@ class Localizer(object):
                         print "did you run ./monitor on the routers? Also check wireless channel"
                         for c in self.collectors:
                             c.power = []
-                        os.system('fab set_channel:nic=wlan0,chan=%s' % self.channels[(self.channels.index(self.chan) + 1) % len(self.channels)])
+                        os.system('fab set_channel:nic=wlan0,chan=%s' % c.channels[(c.channels.index(self.chan) + 1) % len(c.channels)])
                         time.sleep(15)
                         break_now = True
                         continue
