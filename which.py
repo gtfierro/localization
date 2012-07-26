@@ -51,7 +51,8 @@ class Collector:
                 '/usr/bin/iw dev wlan0 set channel %s' % chan]
         self.cmd = 'ssh root@%s "%s; /usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (self.server, ';'.join(cmds),  self.nic, self.mac)
         print self.cmd
-        self.run = CmdRun(mgr, self.cmd, self)
+        print 'restarting',self.server,'on channel',chan
+        self.run = CmdRun(self.mgr, self.cmd, self)
 
     def handle_line(self, line):
         line = line.strip()
@@ -64,8 +65,8 @@ class Collector:
                 assert (len(self.power) == 0 or float(time) > self.power[-1][0])
                 self.power.append((float(time), int(db)))
                 self.count += 1
-        else:
-            print "UNKNOWN RESPONSE (from %s): %s" % (self.server, line)
+#        else:
+#            print "UNKNOWN RESPONSE (from %s): %s" % (self.server, line)
 
     def __str__(self):
         return self.server
@@ -125,27 +126,23 @@ class Localizer(object):
                 for c in self.collectors:
                     #set up defaults
                     avg = 0
-                    valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 10]
-                    size = 10 if len(c.power) >= 10 else len(c.power)
-                    if not valid_points and c.power:
-                        valid_points = sorted(c.power,key= lambda x: x[0])[:size]
+                    valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 5]
                     if not valid_points:
-                        print "did you run ./monitor on the routers? Also check wireless channel"
-                        for c in self.collectors:
-                            print 'restarting',c.server
-                            c.power = []
-                            self.chan = channels[(channels.index(self.chan) + 2) % len(channels)]
-                            c.restart(self.chan)
-                        time.sleep(15)
-                        break_now = True
-                        continue
+                        valid_points = [(t,p) for (t,p) in c.power if t >= time.time() - 10]
+                    if not valid_points:
+                        results.append( (c.server, float('-inf'), 0 ) )
                     else:
                         l= zip(*valid_points)
                         avg = float(sum(l[1])) / float(len(l[1]))
-                    if break_now:
-                        continue
-                    results.append( (c.server,avg,len(valid_points)) )
+                        results.append( (c.server,avg,len(valid_points)) )
                 print results,'on channel',self.chan
+                if len(filter(lambda x: x[1] > float('-inf'),results)) < 1:
+                    self.chan = channels[(channels.index(self.chan) + 2) % len(channels)]
+                    for c in self.collectors:
+                        c.power = []
+                        c.restart(self.chan)
+                    time.sleep(10)
+                    continue
                 if coord and loc_index:
                     self.tmpdict[loc_index] = (coord, results)
                 if self.graphics:
@@ -173,7 +170,7 @@ def track(chan=11,graphics=False,actuate=False):
 
     last_restart = time.time()
     last_switch = time.time()
-    time.sleep(15)
+    time.sleep(10)
     last = None
 
     lookup = {}
@@ -182,11 +179,6 @@ def track(chan=11,graphics=False,actuate=False):
 
     while True:
         try:
-            if (120 < time.time() - last_restart):
-                last_restart = time.time()
-                for c in l.collectors:
-                    print 'restarting'
-                    c.restart()
             closest = argmax(l.run(1))
             print closest
             if actuate:

@@ -11,7 +11,7 @@ class IOMgr:
     self.readmap[fd] = handler
 
   def deregister(self,fd):
-    self.readmap.pop(fd)
+    print self.readmap.pop(fd)
 
   def poll(self, timeout):
     if not self.readmap:
@@ -50,6 +50,7 @@ class CmdRun:
       pos = self.buf.find('\r\n')
 
   def kill(self):
+    print 'killing',self.p.fileno()
     self.mgr.deregister(self.p.fileno())
     print self.mgr.readmap,"<-- should be empty"
     self.p.close()
