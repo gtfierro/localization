@@ -2,6 +2,7 @@ from collector import Collector
 from prun import IOMgr
 import numpy
 import time
+import json
 
 class Localizer:
     def __init__(self, search_mac = 'f8:0c:f3:1d:16:49', channels = [11,6,1]):
@@ -50,6 +51,9 @@ class Localizer:
             self.mgr.poll(3)
             (avgs, counts) = self._average_signals()
             zone = avgs.index(max(avgs))+1
+            with open('../demo/zone.json','wb') as f:
+              d = {'zone': zone+1}
+              json.dump(d,f)
             print zone, avgs
 
             if sum(counts) == 0:
