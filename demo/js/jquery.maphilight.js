@@ -239,6 +239,7 @@
                         canvas_always = $('canvas')[0];
 
 			draw_highlight = function(target) {
+                            target = $(target);
                             target = target[0];
                             area_options = $.fn.maphilight.defaults;
                             $(canvas_always).css(canvas_style);

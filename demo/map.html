@@ -5,6 +5,7 @@
     <script>
         $(document).ready(function() {
             $('img[usemap]').maphilight();
+            $.getJSON("http://localhost:8001/static/example.json", function(data) {draw_highlight('#' + data['zone'])});
         });
     </script>
 </head>
