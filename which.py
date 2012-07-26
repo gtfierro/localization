@@ -49,7 +49,7 @@ class Collector:
         self.run.kill()
         cmds = ['/usr/bin/killall -9 tcpdump',
                 '/usr/bin/iw dev wlan0 set channel %s' % chan]
-        self.cmd = 'ssh root@%s "%s; /usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (self.server, ';'.join(cmds),  nic, mac)
+        self.cmd = 'ssh root@%s "%s; /usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (self.server, ';'.join(cmds),  self.nic, self.mac)
         print self.cmd
         self.run = CmdRun(mgr, self.cmd, self)
 
