@@ -29,4 +29,4 @@ if __name__ == '__main__':
     l.set_level(3)
 
   port = int(os.environ.get('PORT', 8001))
-  app.run(debug=True, port=port)
+  app.run( port=port)

@@ -9,15 +9,12 @@
             current_zone = 4;
             last_reading = 0;
             setInterval(function () {
-              $.getJSON("static/zone.json", function(data) {
-                console.log(data);
+              $.getJSON("static/zone.json?" + Date.now(), function(data) {
+                //console.log(data);
                 if (data['time'] != last_reading) {
                   clear_highlight();
                   draw_highlight('#' + data['zone']);
-                  //if (data['zone'] != current_zone) {
-                  //  $.get("off/" + data['zone']);
-                  //  if (current_zone != 0) $.get("on/" + current_zone);
-                  //}
+
                   current_zone = data['zone'];
                   last_reading = data['time'];
                 }
