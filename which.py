@@ -12,7 +12,7 @@ from collections import defaultdict
 import settings
 
 #for fabric
-channels = [1,6,11]
+channels = [11,6,1]
 def similarity(tup1, tup2):
     """
     closer to 1.0, the more similar
@@ -37,6 +37,7 @@ class Collector:
                 '/usr/sbin/iw dev wlan0 del',
                 '/usr/sbin/iw phy phy0 interface add wlan0 type monitor',
                 '/usr/sbin/iw dev wlan0 set txpower fixed 0',
+                '/usr/sbin/iw dev wlan0 set channel 11',
                 '/sbin/ifconfig wlan0 up']
 
         self.cmd = 'ssh root@%s "%s; /usr/sbin/tcpdump -tt -l -e -i %s ether src %s"' % (server, ';'.join(cmds),  nic, mac)
@@ -78,7 +79,7 @@ class Localizer(object):
         #os.system('fab kill_tcpdump')
         #os.system('fab set_monitor')
         #update collector channels
-        os.system('fab set_channel:nic=%s,chan=%s' % ('wlan0',self.chan))
+        #os.system('fab set_channel:nic=%s,chan=%s' % ('wlan0',self.chan))
 
     def add_collector(self, server,pos=(0,0)):
         self.collectors.append(Collector(self.mgr, server, self.mac, pos=pos))
