@@ -6,7 +6,7 @@
     <script>
         $(document).ready(function() {
             $('img[usemap]').maphilight();
-            current_zone = 0;
+            current_zone = 4;
             last_reading = 0;
             setInterval(function () {
               $.getJSON("static/zone.json", function(data) {
@@ -14,12 +14,22 @@
                 if (data['time'] != last_reading) {
                   clear_highlight();
                   draw_highlight('#' + data['zone']);
+                  //if (data['zone'] != current_zone) {
+                  //  $.get("off/" + data['zone']);
+                  //  if (current_zone != 0) $.get("on/" + current_zone);
+                  //}
                   current_zone = data['zone'];
                   last_reading = data['time'];
                 }
               });
             }, 1000);
-        });
+          });
+          function on() {
+            if (current_zone != 0) $.get("on/" + current_zone);
+          }
+          function off() {
+            if (current_zone != 0) $.get("off/" + current_zone);
+          }
     </script>
 </head>
 <html>
@@ -35,11 +45,8 @@
             </map>
         </div>
         <div style="margin-top: 20px;">
-            <input id="follow" type="checkbox">
-                Have the lights follow you?
-            </input>
-            <button id="actuate">
-                Turn on the lights in your zone
-            </button>
+          <button id="actuate" onClick="on();">On</button>
+          <button id="actuate" onClick="off();">Off</button>
+        </div>
     </body>
 </html>
