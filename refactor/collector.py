@@ -26,8 +26,13 @@ class Collector:
         if self.run:
             self.run.kill()
             self.run = None
-        self.start()
-        
+       
+        cmds = ['/usr/bin/killall -9 tcpdump',
+               '/usr/sbin/iw dev wlan0 set channel %d' % self.channel,
+               '/usr/sbin/tcpdump -tt -l -e -i %s ether src %s' % (self.nic, self.search_mac)]
+        cmd = 'ssh root@%s "%s"' % (self.server, ';'.join(cmds))
+        self.run = CmdRun(self.mgr, cmd, self._handle_line)
+
     def start(self):
         if self.run:
             raise Exception('Controller already running')
@@ -54,6 +59,6 @@ class Collector:
                 assert (len(self.power) == 0 or float(time) > self.power[-1][0])
                 self.power.append((float(time), int(db)))
                 self.count += 1
-        #else:
-        #    print "UNKNOWN RESPONSE (from %s): %s" % (self.server, line)
+        else:
+            print "UNKNOWN RESPONSE (from %s): %s" % (self.server, line)
 

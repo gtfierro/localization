@@ -4,7 +4,7 @@ import numpy
 import time
 
 class Localizer:
-    def __init__(self, search_mac = 'f8:0c:f3:1d:16:49', channels = [11,6,1]):
+    def __init__(self, search_mac = 'f8:0c:f3:1d:16:49', channels = [1,6,11]):
         self.mgr = IOMgr()
         self.search_mac = search_mac
         self.channels = channels
@@ -36,26 +36,35 @@ class Localizer:
 
     def _next_channel(self):
         self.chan_idx = (self.chan_idx + 1) % len(self.channels)
+        print "Change channel to", self.channels[self.chan_idx]
         for c in self.collectors:
             c.set_channel(self.channels[self.chan_idx])
 
     def run(self):
         for c in self.collectors:
             c.start()
-        # Timeout to start tcpdump
-        time.sleep(3)
+        time.sleep(3) # Initialization time
+
+        # Collect packets over sample_period seconds
+        sample_period = 3
+        # No data for last no_data_count seconds 
+        no_data_count = 0
 
         while True:
             # Sample for n seconds
-            self.mgr.poll(3)
+            self.mgr.poll(sample_period)
             (avgs, counts) = self._average_signals()
-            zone = avgs.index(max(avgs))+1
-            print zone, avgs
 
             if sum(counts) == 0:
-                self._next_channel()
-                # Timeout to start tcpdump
-                time.sleep(3)
+                no_data_count += sample_period
+                if no_data_count > 10:
+                    self._next_channel()
+                    time.sleep(3) # Initialization time
+                    no_data_count = 0
+            else:
+                no_data_count = 0
+                zone = avgs.index(max(avgs)) + 1
+                print zone, avgs
 
 if __name__ == '__main__':
     l = Localizer()

@@ -31,8 +31,9 @@ class CmdRun:
   def __init__(self, mgr, cmd, handle_line):
     self.buf = bytes()
     self.handle_line = handle_line
+    self.mgr = mgr
     self.p = pexpect.spawn(cmd)
-    mgr.register(self.p.fileno(), self._handle_data)
+    self.mgr.register(self.p.fileno(), self._handle_data)
 
   def _handle_data(self, fd):
     try:
