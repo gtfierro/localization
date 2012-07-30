@@ -1,0 +1,5 @@
+
+maybe don't need the -y expression seeing as the routers
+can only see one type of traffic anyway?
+
+tcpdump -t -l -e -i wlan0 -y IEEE802_11_RADIO -F filter | grep -oe 'SA:\([0-9a-f]\{2\}:\?\)\{6\}' | sed -n 's/SA:\(.*\)/\1/p'

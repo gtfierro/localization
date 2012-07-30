@@ -1,0 +1,4 @@
+1343412699.549165 954191us tsft 2462 MHz 11g -45dB signal antenna 1 65.0 Mb/s MCS 7 20 MHz lon GI CF +QoS BSSID:00:24:14:31:f6:e4 (oui Unknown) SA:00:26:4d:6a:7d:78 (oui Unknown) 
+DA:68:b5:99:c2:bb:92 (oui Unknown) LLC, dsap SNAP (0xaa) Individual, ssap SNAP (0xaa) Command, ctrl 0x03: oui Ethernet (0x000000),
+ethertype IPv4 (0x0800): 10.10.65.208.50899 > 180.149.135.236.www: Flags [.], ack 1, win 256, length 0    
+
