@@ -6,9 +6,7 @@ from collections import defaultdict
 class Collector:
     def __init__(self, mgr, server, channel):
         # Collected data
-        self.power = []
         self.macs = defaultdict(list)
-        self.owned_macs = [] #list of mac addresses actually in the zone
         self.count = 0
         self.run = None
 
@@ -19,14 +17,13 @@ class Collector:
         self.nic = 'wlan0'
 
     def get_data(self):
-        return self.macs, self.power
+        return self.macs
 
     def clear_data(self):
-        self.power = []
         self.macs = defaultdict(list)
 
     def start_channel_cycle(self):
-        cmd = 'ssh root@%s "killall -9 sh ; sh cycle.sh &"' % self.server
+        cmd = 'ssh root@%s "killall -9 sh ; /bin/sh cycle.sh &"' % self.server
         run = CmdRun(self.mgr, cmd, self._handle_line)
         print 'cycling channels on',self.server
         
@@ -47,12 +44,10 @@ class Collector:
 
     def _handle_line(self, line):
         line = line.strip()
-        m = re.search('^(\d+\.\d+) .* (-?\d+)dB .* SA:([0-9a-f:]+) ', line)
+        m = re.search('^(\d+\.\d+) .* (-\d+)dB .* SA:([0-9a-f:]+) ', line)
         if m:
             (time, db, mac) = m.groups()
-            assert (len(self.power) == 0 or float(time) > self.power[-1][0])
             #default dict will take care of nonexistant macs
             self.macs[mac].append(int(db))
-            self.power.append((float(time), int(db)))
             self.count += 1
 

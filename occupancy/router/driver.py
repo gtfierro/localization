@@ -39,6 +39,8 @@ class Localizer:
     def _median(self, data):
       if len(data) == 0:
         return float('-inf')
+      if numpy.median(data) > 0:
+        print data
       return numpy.median(data)
 
     def _median_signals(self):
@@ -60,16 +62,14 @@ class Localizer:
         all_macs = set()
 
         for c in self.collectors:
-            #for each mac, get the median power
-            #the collector who has the highest median power
-            #for a given mac address 'owns' that macaddress
-            macs,power = c.get_data() #tuple of c.mac, c.power
+            macs = c.get_data() #tuple of c.mac
             all_macs.update(set(macs))
             c.clear_data()
             for mac in macs:
                 collector_macs[c.server][mac] = self._median(macs[mac])
         for mac in all_macs:
             owner = max( [(collector_macs[c.server][mac], c.server)  for c in self.collectors] , key=lambda x: x[0])[1]
+            #print mac,':',[(collector_macs[c.server][mac], c.server)  for c in self.collectors], owner
             owned_macs[owner].append(mac)
         return owned_macs
 
@@ -79,7 +79,7 @@ class Localizer:
             c.start_channel_cycle()
         for c in self.collectors:
             c.start()
-        time.sleep(3) # Initialization time
+        time.sleep(5) # Initialization time
 
         # Collect packets over sample_period seconds
         sample_period = 5
@@ -99,15 +99,13 @@ class Localizer:
             self.mgr.poll(sample_period)
             owned_macs = self._get_occupancy()
             if graphics:
-              timestamp += 5
+              timestamp += sample_period
               for (s,style) in zip(owned_macs,['r.','b.','g.','c.']):
                   ax.plot(timestamp, len(owned_macs[s]), style)
               plt.draw()
-            else:
-              print [(c, len(owned_macs[c])) for c in owned_macs]
+            print [(c, len(owned_macs[c])) for c in owned_macs]
 
 if __name__ == '__main__':
     l = Localizer()
-    if len(sys.argv) > 1:
-      graphics = int(sys.argv[1])
+    graphics = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     l.run(graphics)
