@@ -39,8 +39,7 @@ class Localizer:
     def _median(self, data):
       if len(data) == 0:
         return float('-inf')
-      return sorted(data)[len(data) / 2]
-
+      return numpy.median(data)
 
     def _median_signals(self):
         medians = []
@@ -83,7 +82,7 @@ class Localizer:
         time.sleep(3) # Initialization time
 
         # Collect packets over sample_period seconds
-        sample_period = 3
+        sample_period = 5
         # No data for last no_data_count seconds 
         no_data_count = 0
         if graphics:
@@ -96,12 +95,11 @@ class Localizer:
 
         timestamp = 0
         while True:
-
             # Sample for n seconds
             self.mgr.poll(sample_period)
             owned_macs = self._get_occupancy()
             if graphics:
-              timestamp += .1
+              timestamp += 5
               for (s,style) in zip(owned_macs,['r.','b.','g.','c.']):
                   ax.plot(timestamp, len(owned_macs[s]), style)
               plt.draw()
