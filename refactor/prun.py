@@ -1,8 +1,15 @@
+"""
+Classes for executing processes and collecting output in parallel
+@author Andrew Krioukov
+"""
 import pexpect
 import os
 import select
 import time
 
+"""
+Poll multiple output streams
+"""
 class IOMgr:
   def __init__(self):
     self.readmap = {}
@@ -27,6 +34,9 @@ class IOMgr:
       elapsed = time.time() - start
       timeout = timeout - elapsed
 
+"""
+Run a command and call handle_line for each line of output recieved
+"""
 class CmdRun:
   def __init__(self, mgr, cmd, handle_line):
     self.buf = bytes()
