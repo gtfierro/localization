@@ -79,10 +79,10 @@ class Localizer:
             c.start_channel_cycle()
         for c in self.collectors:
             c.start()
-        time.sleep(5) # Initialization time
+        time.sleep(60) # Initialization time
 
         # Collect packets over sample_period seconds
-        sample_period = 5
+        sample_period = 60
         # No data for last no_data_count seconds 
         no_data_count = 0
         if graphics:
