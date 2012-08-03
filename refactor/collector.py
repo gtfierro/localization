@@ -1,3 +1,7 @@
+"""
+Collect packet data from a single remote sniffer
+@author Andrew Krioukov
+"""
 from prun import CmdRun, IOMgr
 import os
 import re
