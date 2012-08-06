@@ -2,6 +2,7 @@ from collector import Collector
 from prun import IOMgr
 from collections import defaultdict
 import numpy
+import pickle
 import time
 import json
 import sys
@@ -80,7 +81,7 @@ class Localizer:
         for c in self.collectors:
             c.start()
         # Collect packets over sample_period seconds
-        sample_period = 60
+        sample_period = 5
 
         time.sleep(sample_period) # Initialization time
 
@@ -96,6 +97,7 @@ class Localizer:
 
         timestamp = 0
         while True:
+          try:
             # Sample for n seconds
             self.mgr.poll(sample_period)
             owned_macs = self._get_occupancy()
@@ -105,6 +107,13 @@ class Localizer:
                   ax.plot(timestamp, len(owned_macs[s]), style)
               plt.draw()
             print [(c, len(owned_macs[c])) for c in owned_macs]
+          except KeyboardInterrupt:
+            all_powers = []
+            for c in self.collectors:
+              all_powers.extend(c.power)
+            pickle.dump(all_powers,open('power.db','wb'))
+            break
+            
 
 if __name__ == '__main__':
     l = Localizer()

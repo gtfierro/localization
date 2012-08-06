@@ -6,6 +6,7 @@ from collections import defaultdict
 class Collector:
     def __init__(self, mgr, server, channel):
         # Collected data
+        self.power = []
         self.macs = defaultdict(list)
         self.count = 0
         self.run = None
@@ -55,5 +56,6 @@ class Collector:
             #default dict will take care of nonexistant macs
             if bssid in self.bssids:
                 self.macs[mac].append(int(db))
+                self.power.append(int(db))
                 self.count += 1
 
