@@ -23,7 +23,7 @@ echo "while [ 1 ] ; do sleep 1 ; /usr/sbin/iw wlan0 set channel 1 ; sleep 1 ; /u
 
 Now you can just run ```sh cycle.sh &``` on the router to have it cycle between the valid AirBears channels every second. You can stop the script with ```killall sh```.
 
-###Tcpdump customization
+##Tcpdump customization
 Obviously, the routers don't have much RAM, but we still want to squeeze as many packets as we can out of them. I'm still working on a way to try to get tcpdump to clear the kernel buffer so that it doesn't start to drop packets after it has been
 running for awhile, but I've found some ways to try to pare down the amount of data it feels it has to store, so we can at least run tcpdump for longer than before. Run tcpdump with the following flags on the routers. 
 
@@ -86,5 +86,27 @@ of the tcpdump command), the binary will automatically filter out all packets co
  		error("%s", pcap_geterr(pd));
 ```
 
-###How to cross compile tcpdump for OpenWrt
-Coming soon...
+##How to cross compile tcpdump for OpenWrt
+First, get the OpenWrt source
+
+```
+svn co  svn://svn.openwrt.org/openwrt/trunk/
+```
+
+Now ```cd``` into the trunk, and make sure to update the package feeds.
+
+```
+cd trunk
+scripts/feeds update
+make package/symlinks
+```
+
+Now you can configure the kernel for compilation. Run ```make menuconfig``` to get the build configuration menu. Make sure you specify the correct Target System (the G300NH2 and AG300H use AR71xx), and
+be sure to specify the "Build the OpenWrt Image Builder," "Build the OpenWrt SDK," and "Build the OpenWrt based Toolchain" options. *Especially* make sure you select the SDK one. If you forget the others,
+it may or may not work, so if it doesn't work, rebuild the kernel with those other options selected. Finally, after you're all done, run ```make```.
+
+Okay, now that that has completed correctly (don't worry, you're not going to have to wait for the full kernel install each time), you can compile tcpdump! From the trunk directory (I'll be treating this as the ```PWD``` from now on),
+copy your patch files (at least the two above) to ```./package/tcpdump/patches/```. Make sure that each patch is prepended with a 3 digit number. The actual number doesn't matter as long as it is 3 digits (0-padding for single and double
+digit numbers) and it's not the same number as another prefix in the same directory. Now, from the trunk directory, run ```make V=99 package/tcpdump/{clean,prepare,compile}```. Hopefully this compiles correctly. If it did, then you'll find
+an .ipk file at ```./build_dir/target-mips_r2_uClibc-0.9.33.2/OpenWrt-ImageBuilder-ar71xx_generic-for-Linux-i686/packages/tcpdump_4.2.1-1_ar71xx.ipk```. You can scp that ipk file to your various routers and run ```opkg install tcpdump_4.2.1-1_ar71xx.ipk```
+to install the new binary!
