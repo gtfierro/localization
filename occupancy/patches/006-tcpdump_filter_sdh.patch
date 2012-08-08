@@ -1,0 +1,19 @@
+--- a/tcpdump.c
++++ b/tcpdump.c
+@@ -1241,10 +1241,12 @@
+ 			warning("%s", ebuf);
+ 		}
+ 	}
+-	if (infile)
+-		cmdbuf = read_infile(infile);
+-	else
+-		cmdbuf = copy_argv(&argv[optind]);
++  if (infile)
++      cmdbuf = read_infile(infile);
++  else if (0 == (cmdbuf = copy_argv(&argv[optind])))
++      cmdbuf = copy_argv(&argv[optind]);
++  else
++      cmdbuf = "ether src not 00:24:14:31:f8:af and ether src not 00:24:14:31:f8:ae and ether src not 00:24:14:31:f6:e4 and ether src not 00:24:14:31:f6:e0 and ether src not 00:24:14:31:f6:e3 and ether src not 00:24:14:31:f9:43 and ether src not 00:24:14:31:f6:e1 and ether src not 00:24:14:31:f6:e2 and ether src not 00:24:14:31:f9:41 and ether src not 00:24:14:31:f9:42 and ether src not 00:24:14:31:f9:44 and ether src not 00:24:14:31:f9:40 and ether src not 00:24:14:31:eb:b3 and ether src not 00:24:14:31:eb:b1 and ether src not 00:24:14:31:eb:b2 and ether src not 00:24:14:31:eb:b0 and ether src not 00:24:14:31:f8:a3 and ether src not 00:24:14:31:f8:a1 and ether src not 00:24:14:31:f8:a2 and ether src not 00:24:14:31:f8:a4 and ether src not 00:24:14:31:f8:a0 and ether src not 00:24:14:31:e6:23 and ether src not 00:24:14:31:f2:e2 and ether src not 00:24:14:31:f2:e4 and ether src not 00:24:14:31:e6:21 and ether src not 00:24:14:31:e6:22 and ether src not 00:24:14:31:e6:24 and ether src not 00:24:14:31:e6:20 and ether src not 00:24:14:31:f6:ee and ether src not 00:24:14:31:f6:ef and ether src not 00:24:14:31:f9:4e and ether src not 00:24:14:31:f9:4f and ether src not 00:24:14:31:eb:be and ether src not 00:24:14:31:eb:bf and ether src not 00:24:14:31:e6:2e and ether src not 00:24:14:31:e6:2f and (ether dst 00:24:14:31:f8:af  or ether dst 00:24:14:31:f8:ae  or ether dst 00:24:14:31:f6:e4  or ether dst 00:24:14:31:f6:e0  or ether dst 00:24:14:31:f6:e3  or ether dst 00:24:14:31:f9:43  or ether dst 00:24:14:31:f6:e1  or ether dst 00:24:14:31:f6:e2  or ether dst 00:24:14:31:f9:41  or ether dst 00:24:14:31:f9:42  or ether dst 00:24:14:31:f9:44  or ether dst 00:24:14:31:f9:40  or ether dst 00:24:14:31:eb:b3  or ether dst 00:24:14:31:eb:b1  or ether dst 00:24:14:31:eb:b2  or ether dst 00:24:14:31:eb:b0  or ether dst 00:24:14:31:f8:a3  or ether dst 00:24:14:31:f8:a1  or ether dst 00:24:14:31:f8:a2  or ether dst 00:24:14:31:f8:a4  or ether dst 00:24:14:31:f8:a0  or ether dst 00:24:14:31:e6:23  or ether dst 00:24:14:31:f2:e2  or ether dst 00:24:14:31:f2:e4  or ether dst 00:24:14:31:e6:21  or ether dst 00:24:14:31:e6:22  or ether dst 00:24:14:31:e6:24  or ether dst 00:24:14:31:e6:20  or ether dst 00:24:14:31:f6:ee  or ether dst 00:24:14:31:f6:ef  or ether dst 00:24:14:31:f9:4e  or ether dst 00:24:14:31:f9:4f  or ether dst 00:24:14:31:eb:be  or ether dst 00:24:14:31:eb:bf  or ether dst 00:24:14:31:e6:2e  or ether dst 00:24:14:31:e6:2f)";
+ 
+ 	if (pcap_compile(pd, &fcode, cmdbuf, Oflag, netmask) < 0)
+ 		error("%s", pcap_geterr(pd));
