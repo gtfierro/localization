@@ -110,3 +110,23 @@ copy your patch files (at least the two above) to ```./package/tcpdump/patches/`
 digit numbers) and it's not the same number as another prefix in the same directory. Now, from the trunk directory, run ```make V=99 package/tcpdump/{clean,prepare,compile}```. Hopefully this compiles correctly. If it did, then you'll find
 an .ipk file at ```./build_dir/target-mips_r2_uClibc-0.9.33.2/OpenWrt-ImageBuilder-ar71xx_generic-for-Linux-i686/packages/tcpdump_4.2.1-1_ar71xx.ipk```. You can scp that ipk file to your various routers and run ```opkg install tcpdump_4.2.1-1_ar71xx.ipk```
 to install the new binary!
+
+#Benchmarks
+All benchmarks run for 20 minutes on router 128.32.156.64, running custom build of tcpdump w/ built-in filter
+ 
+```
+tcpdump -tt -l -e -i wlan0 -s80 -y IEEE802_11_RADIO                                                 
+ received: 1233115                                                                                   
+ captured: 544811 (44.18%)
+ dropped:  673710 (54.63%)
+ 
+tcpdump -tt -l -e -i wlan0 -s80 -y IEEE802_11_RADIO -B40000 #increase buffer attempt                
+ received: 3329535
+ captured: 1180546 (33.46%)                                                                          
+ dropped:  1956534 (58.76%)
+     
+tcpdump -tt -s80 -e -w - -U -i wlan0 #piped output                                                  
+ received: 557045                                                                                    
+ captured: 557038 (99.99%)
+ dropped:  0
+```
