@@ -27,11 +27,14 @@ Now you can just run ```sh cycle.sh &``` on the router to have it cycle between 
 Obviously, the routers don't have much RAM, but we still want to squeeze as many packets as we can out of them. I'm still working on a way to try to get tcpdump to clear the kernel buffer so that it doesn't start to drop packets after it has been
 running for awhile, but I've found some ways to try to pare down the amount of data it feels it has to store, so we can at least run tcpdump for longer than before. Run tcpdump with the following flags on the routers. 
 
+~~tcpdump -tt -l -e -s80 -i wlan0~~
+
+UPDATE: due to the benchmarks done below, the following command seems to work much much better:
 ```
-tcpdump -tt -l -e -s80 -i wlan0
+tcpdump -tt -w - -U -s80 -e -i wlan0 -y IEEE802_11_RADIO
 ```
 
-The ```-s80``` is important because it limits the packet capture size to 80 bytes, which is enough for us to get out the BSSID and SA (source address) from the packet from the 802.11 radiotap header, which is what contains everything about signal strength.
+The ```-w - -U``` options take the place of the previous ```-l``` option, and seem to handle the output of text much more robustly, so that stdout doesn't muck everything up. The ```-s80``` is important because it limits the packet capture size to 80 bytes, which is enough for us to get out the BSSID and SA (source address) from the packet from the 802.11 radiotap header, which is what contains everything about signal strength.
 Make sure you apply the following patch to tcpdump before you compile (see later section on how to cross compile tcpdump with custom patches for OpenWrt). The patch fixes up the printing of the radiotap header (which is why we specify the ```-e``` flag to tcpdump)
 so that we can see exactly what field and what units we are dealing with.
 
