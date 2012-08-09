@@ -129,4 +129,9 @@ tcpdump -tt -s80 -e -w - -U -i wlan0 #piped output
  received: 557045                                                                                    
  captured: 557038 (99.99%)
  dropped:  0
+ 
+tcpdump -tt -e -i wlan0 -w - -U -s80 -y IEEE802_11_RADIO
+ received: 2038845
+ captured: 2038849 (99.99%)
+ dropped: 0
 ```
