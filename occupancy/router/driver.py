@@ -6,6 +6,7 @@ import pickle
 import time
 import json
 import sys
+import os
 
 class Localizer:
     def __init__(self, channels = [1,6,11]):
@@ -14,6 +15,8 @@ class Localizer:
         self.chan_idx = 0
 
         self.collectors = []
+
+        os.system('mkfifo /tmp/packets')
         
         self._add_collector('128.32.156.131')
         self._add_collector('128.32.156.64')

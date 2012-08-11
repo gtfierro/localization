@@ -1,0 +1,10 @@
+--- tcpdump.c
++++ tcpdump.c
+@@ -331,6 +331,8 @@
+ 	struct printer *p;
+ 
+ 	for (p = printers; p->f; ++p)
++    if (type == DLT_IEEE802_11_RADIO)
++      return ieee802_11_radio_if_print;
+ 		if (type == p->type)
+ 			return p->f;

@@ -1,5 +1,6 @@
 from prun import CmdRun, IOMgr
 import os
+import subprocess
 import re
 from collections import defaultdict
 
@@ -38,10 +39,13 @@ class Collector:
                 '/usr/sbin/iw phy phy0 interface add wlan0 type monitor',
                 '/usr/sbin/iw dev wlan0 set txpower fixed 0',
                 '/usr/sbin/iw dev wlan0 set channel %d' % self.channel,
-                '/sbin/ifconfig wlan0 up',
-                '/usr/sbin/tcpdump -tt -l -e -i %s -y IEEE802_11_RADIO -F /root/router-filter' % self.nic]
+                '/sbin/ifconfig wlan0 up']
 
+        #setup commands
         cmd = 'ssh root@%s "%s"' % (self.server, ';'.join(cmds))
+        self.run = CmdRun(self.mgr, cmd, self._handle_line)
+        #setup piped tcpdump
+        cmd = 'ssh root@%s "%s" > /tmp/pipe' % (self.server, '/usr/sbin/tcpdump -tt -e -w - -U -i wlan0 -y IEEE802_11_RADIO port not 22')
         self.run = CmdRun(self.mgr, cmd, self._handle_line)
 
     def _handle_line(self, line):
