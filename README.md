@@ -27,11 +27,14 @@ Now you can just run ```sh cycle.sh &``` on the router to have it cycle between 
 Obviously, the routers don't have much RAM, but we still want to squeeze as many packets as we can out of them. I'm still working on a way to try to get tcpdump to clear the kernel buffer so that it doesn't start to drop packets after it has been
 running for awhile, but I've found some ways to try to pare down the amount of data it feels it has to store, so we can at least run tcpdump for longer than before. Run tcpdump with the following flags on the routers. 
 
+~~tcpdump -tt -l -e -s80 -i wlan0~~
+
+UPDATE: due to the benchmarks done below, the following command seems to work much much better:
 ```
-tcpdump -tt -l -e -s80 -i wlan0
+tcpdump -tt -w - -U -s80 -e -i wlan0 -y IEEE802_11_RADIO
 ```
 
-The ```-s80``` is important because it limits the packet capture size to 80 bytes, which is enough for us to get out the BSSID and SA (source address) from the packet from the 802.11 radiotap header, which is what contains everything about signal strength.
+The ```-w - -U``` options take the place of the previous ```-l``` option, and seem to handle the output of text much more robustly, so that stdout doesn't muck everything up. The ```-s80``` is important because it limits the packet capture size to 80 bytes, which is enough for us to get out the BSSID and SA (source address) from the packet from the 802.11 radiotap header, which is what contains everything about signal strength.
 Make sure you apply the following patch to tcpdump before you compile (see later section on how to cross compile tcpdump with custom patches for OpenWrt). The patch fixes up the printing of the radiotap header (which is why we specify the ```-e``` flag to tcpdump)
 so that we can see exactly what field and what units we are dealing with.
 
@@ -110,3 +113,33 @@ copy your patch files (at least the two above) to ```./package/tcpdump/patches/`
 digit numbers) and it's not the same number as another prefix in the same directory. Now, from the trunk directory, run ```make V=99 package/tcpdump/{clean,prepare,compile}```. Hopefully this compiles correctly. If it did, then you'll find
 an .ipk file at ```./build_dir/target-mips_r2_uClibc-0.9.33.2/OpenWrt-ImageBuilder-ar71xx_generic-for-Linux-i686/packages/tcpdump_4.2.1-1_ar71xx.ipk```. You can scp that ipk file to your various routers and run ```opkg install tcpdump_4.2.1-1_ar71xx.ipk```
 to install the new binary!
+
+#Benchmarks
+All benchmarks run for 20 minutes on router 128.32.156.64, running custom build of tcpdump w/ built-in filter
+ 
+```
+tcpdump -tt -l -e -i wlan0 -s80 -y IEEE802_11_RADIO                                                 
+ received: 1233115                                                                                   
+ captured: 544811 (44.18%)
+ dropped:  673710 (54.63%)
+ 
+tcpdump -tt -l -e -i wlan0 -s80 -y IEEE802_11_RADIO -B40000 #increase buffer attempt                
+ received: 3329535
+ captured: 1180546 (33.46%)                                                                          
+ dropped:  1956534 (58.76%)
+     
+tcpdump -tt -s80 -e -w - -U -i wlan0 #piped output                                                  
+ received: 557045                                                                                    
+ captured: 557038 (99.99%)
+ dropped:  0
+ 
+tcpdump -tt -e -i wlan0 -w - -U -s80 -y IEEE802_11_RADIO
+ received: 2038849
+ captured: 2038845 (99.99%)
+ dropped: 0
+
+tcpdump -tt -e -i wlan0 -w - -U -s80 -y IEEE802_11_RADIO #with print search optimization
+ received: 885752
+ captured: 885737 (99.99%)
+ dropped: 0
+```
