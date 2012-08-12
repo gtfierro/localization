@@ -117,7 +117,7 @@ class Collector:
 
 def main(sample_period):
     mgr = IOMgr()
-    c = Collector(mgr,sample_period,"128.32.156.64","128.32.156.67")
+    c = Collector(mgr,sample_period,"128.32.156.64","128.32.156.67","128.32.156.131")
     while True:
         try:
             mgr.poll(sample_period)
@@ -129,5 +129,4 @@ def main(sample_period):
             sys.exit(0)
 
 if __name__=="__main__":
-    sr = int(sys.argv[1]) if len(sys.argv) > 1 else 10
-    main(sr)
+    main(int(sys.argv[1]) if len(sys.argv) > 1 else 10)
