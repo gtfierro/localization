@@ -68,12 +68,18 @@ class Collector:
             print '  Started tcpdump on %s' % router
 
     def kill(self):
+        """
+        Safely stops all processes running in separate threads
+        """
         for m in self.monitors:
             self.monitors[m].kill()
         for r in self.routers:
             self.routers[r].kill()
 
     def clear_data(self):
+        """
+        Re-initializes internal data structures for records
+        """
         self.power = []
         for r in self.macs:
             self.macs[r] = defaultdict(list)
@@ -96,10 +102,12 @@ class Collector:
             return_dict[router] = {mac: self.macs[router][mac] for mac in self.macs[router] if self.macs[router][mac]}
         return return_dict
 
-    #TODO: filter by mac addresses that have more than 100 readings?
     #TODO: finish up the math
     
     def _handle_line(self, line,ip='0.0.0.0'):
+        """
+        Parses line, and if valid, store the signal with the appropriate router and mac address
+        """
         line = line.strip()
         m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*SA:([0-9a-f:]+) ', line)
         if m:
@@ -121,4 +129,5 @@ def main(sample_period):
             sys.exit(0)
 
 if __name__=="__main__":
-    main(10)
+    sr = int(sys.argv[1]) if len(sys.argv) > 1 else 10
+    main(sr)
