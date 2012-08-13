@@ -73,6 +73,18 @@ class Collector:
             #now we can loop through routers.keys() and call .kill()
             print '  Started tcpdump on %s' % router
 
+    def get_all_macs(self,routers=None):
+        """
+        Returns list of all mac addresses (unique) for all routers specified in [routers], defaults to all routers
+        """
+        macs = set()
+        if isinstance(routers, str):
+          routers=list(routers)
+        r_iter = routers if routers else self.macs.keys()
+        for router in r_iter:
+            macs.update(self.macs[router].keys())
+        return list(macs)
+
     def kill(self):
         """
         Safely stops all processes running in separate threads
@@ -93,22 +105,39 @@ class Collector:
         self.count = 0
 
 
-    def get_data(self):
+    def get_data(self,avg=True):
         """
         Returns self.macs, but only mac addressese with at least one third of the sample size packets 
         will be returned. For those that are returned, the median signal is returned
         """
+        if avg:
+            for router in self.macs:
+                for mac in self.macs[router]:
+                    self.records[router][mac].extend(self.macs[router][mac])
+                    if len(self.macs[router][mac]) >= (.33 * self.sample_period):
+                        self.macs[router][mac] = (numpy.median(self.macs[router][mac]), numpy.average(self.macs[router][mac]))
+                    else:
+                        self.macs[router][mac] = None
+            return_dict = {}
+            for router in self.macs:
+                return_dict[router] = {mac: self.macs[router][mac] for mac in self.macs[router] if self.macs[router][mac]}
+            return return_dict
+        else:
+            return self.macs
+
+    def get_data_for_mac(self, mac):
+        """
+        Returns list of (RSSI, router-ip) tuples, where RSSI is a negative number in dBM indicating signal strength
+        and router-ip is the router where that was measured.
+        Only returns signals for [mac]
+        """
+        ret = []
         for router in self.macs:
-            for mac in self.macs[router]:
-                self.records[router][mac].extend(self.macs[router][mac])
-                if len(self.macs[router][mac]) >= (.33 * self.sample_period):
-                    self.macs[router][mac] = (numpy.median(self.macs[router][mac]), numpy.average(self.macs[router][mac]))
-                else:
-                    self.macs[router][mac] = None
-        return_dict = {}
-        for router in self.macs:
-            return_dict[router] = {mac: self.macs[router][mac] for mac in self.macs[router] if self.macs[router][mac]}
-        return return_dict
+            if self.macs[router].has_key(mac):
+                data = self.macs[router][mac]
+                ret.extend(zip(data, [router]*len(data)))
+        return ret
+
 
     def _handle_line(self, line,ip='0.0.0.0'):
         """
