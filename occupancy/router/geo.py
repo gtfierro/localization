@@ -54,14 +54,16 @@ class Floor(object):
     and router-ip is a string corresponding to one of the routers we've registered with
     this Floor
     """
-    sum_reciprocal = sum(map(lambda x: 1.0 / abs(float(x[0])), data))
+    sum_reciprocal = sum(map(lambda x: 0.1 / ( 10 ** abs(float(x[0]))), data))
     x_coord = 0
     y_coord = 0
     for point in data:
+      signal = (10 ** (abs(float(point[0]))) / 10.0)
+      print signal, point[0]
       if point[1] not in self.routers.keys():
         continue
-      x_coord += ( self.routers[point[1]][0] / abs(float(point[0])) )
-      y_coord += ( self.routers[point[1]][1] / abs(float(point[0])) )
+      x_coord += ( self.routers[point[1]][0] / signal )
+      y_coord += ( self.routers[point[1]][1] / signal )
     x_coord /= sum_reciprocal
     y_coord /= sum_reciprocal
     print x_coord, y_coord
