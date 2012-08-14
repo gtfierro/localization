@@ -31,12 +31,12 @@ running for awhile, but I've found some ways to try to pare down the amount of d
 
 UPDATE: due to the benchmarks done below, the following command seems to work much much better:
 ```
-tcpdump -tt -w - -U -s80 -e -i wlan0 -y IEEE802_11_RADIO
+tcpdump -tt -w - -U -s80 -e -i wlan0 -y IEEE802_11_RADIO -F /root/router-filter
 ```
 
 The ```-w - -U``` options take the place of the previous ```-l``` option, and seem to handle the output of text much more robustly, so that stdout doesn't muck everything up. The ```-s80``` is important because it limits the packet capture size to 80 bytes, which is enough for us to get out the BSSID and SA (source address) from the packet from the 802.11 radiotap header, which is what contains everything about signal strength.
 Make sure you apply the following patch to tcpdump before you compile (see later section on how to cross compile tcpdump with custom patches for OpenWrt). The patch fixes up the printing of the radiotap header (which is why we specify the ```-e``` flag to tcpdump)
-so that we can see exactly what field and what units we are dealing with.
+so that we can see exactly what field and what units we are dealing with. Also make sure that router-filter (from the repo) is in the root directory.
 
 ```
 --- a/print-802_11.c	
@@ -64,31 +64,6 @@ so that we can see exactly what field and what units we are dealing with.
  		printf("%u sq ", u.u16);
 ```
 
-This next patch hardcodes a default filter into the tcpdump binary, so that if an alternative filter is not specified (with the ```-F <file>``` flag or by otherwise just appending it to the end
-of the tcpdump command), the binary will automatically filter out all packets coming *from* the Cisco routers visible from the 4th floor and returns only packets going *to* one of those routers.
-
-```
---- a/tcpdump.c
-+++ b/tcpdump.c
-@@ -1241,10 +1241,12 @@
- 			warning("%s", ebuf);
- 		}
- 	}
--	if (infile)
--		cmdbuf = read_infile(infile);
--	else
--		cmdbuf = copy_argv(&argv[optind]);
-+  if (infile)
-+      cmdbuf = read_infile(infile);
-+  else if (0 == (cmdbuf = copy_argv(&argv[optind])))
-+      cmdbuf = copy_argv(&argv[optind]);
-+  else
-+      cmdbuf = "ether src not 00:24:14:31:f8:af and ether src not 00:24:14:31:f8:ae and ether src not 00:24:14:31:f6:e4 and ether src not 00:24:14:31:f6:e0 and ether src not 00:24:14:31:f6:e3 and ether src not 00:24:14:31:f9:43 and ether src not 00:24:14:31:f6:e1 and ether src not 00:24:14:31:f6:e2 and ether src not 00:24:14:31:f9:41 and ether src not 00:24:14:31:f9:42 and ether src not 00:24:14:31:f9:44 and ether src not 00:24:14:31:f9:40 and ether src not 00:24:14:31:eb:b3 and ether src not 00:24:14:31:eb:b1 and ether src not 00:24:14:31:eb:b2 and ether src not 00:24:14:31:eb:b0 and ether src not 00:24:14:31:f8:a3 and ether src not 00:24:14:31:f8:a1 and ether src not 00:24:14:31:f8:a2 and ether src not 00:24:14:31:f8:a4 and ether src not 00:24:14:31:f8:a0 and ether src not 00:24:14:31:e6:23 and ether src not 00:24:14:31:f2:e2 and ether src not 00:24:14:31:f2:e4 and ether src not 00:24:14:31:e6:21 and ether src not 00:24:14:31:e6:22 and ether src not 00:24:14:31:e6:24 and ether src not 00:24:14:31:e6:20 and ether src not 00:24:14:31:f6:ee and ether src not 00:24:14:31:f6:ef and ether src not 00:24:14:31:f9:4e and ether src not 00:24:14:31:f9:4f and ether src not 00:24:14:31:eb:be and ether src not 00:24:14:31:eb:bf and ether src not 00:24:14:31:e6:2e and ether src not 00:24:14:31:e6:2f and (ether dst 00:24:14:31:f8:af  or ether dst 00:24:14:31:f8:ae  or ether dst 00:24:14:31:f6:e4  or ether dst 00:24:14:31:f6:e0  or ether dst 00:24:14:31:f6:e3  or ether dst 00:24:14:31:f9:43  or ether dst 00:24:14:31:f6:e1  or ether dst 00:24:14:31:f6:e2  or ether dst 00:24:14:31:f9:41  or ether dst 00:24:14:31:f9:42  or ether dst 00:24:14:31:f9:44  or ether dst 00:24:14:31:f9:40  or ether dst 00:24:14:31:eb:b3  or ether dst 00:24:14:31:eb:b1  or ether dst 00:24:14:31:eb:b2  or ether dst 00:24:14:31:eb:b0  or ether dst 00:24:14:31:f8:a3  or ether dst 00:24:14:31:f8:a1  or ether dst 00:24:14:31:f8:a2  or ether dst 00:24:14:31:f8:a4  or ether dst 00:24:14:31:f8:a0  or ether dst 00:24:14:31:e6:23  or ether dst 00:24:14:31:f2:e2  or ether dst 00:24:14:31:f2:e4  or ether dst 00:24:14:31:e6:21  or ether dst 00:24:14:31:e6:22  or ether dst 00:24:14:31:e6:24  or ether dst 00:24:14:31:e6:20  or ether dst 00:24:14:31:f6:ee  or ether dst 00:24:14:31:f6:ef  or ether dst 00:24:14:31:f9:4e  or ether dst 00:24:14:31:f9:4f  or ether dst 00:24:14:31:eb:be  or ether dst 00:24:14:31:eb:bf  or ether dst 00:24:14:31:e6:2e  or ether dst 00:24:14:31:e6:2f)";
- 
- 	if (pcap_compile(pd, &fcode, cmdbuf, Oflag, netmask) < 0)
- 		error("%s", pcap_geterr(pd));
-```
-
 ##How to cross compile tcpdump for OpenWrt
 First, get the OpenWrt source
 
@@ -101,6 +76,7 @@ Now ```cd``` into the trunk, and make sure to update the package feeds.
 ```
 cd trunk
 scripts/feeds update
+scripts/update-package-md5sum package/tcpdump
 make package/symlinks
 ```
 
