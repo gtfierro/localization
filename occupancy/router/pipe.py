@@ -70,7 +70,7 @@ class Collector:
         for router in list(router_list):
             while setup_procs[router].poll() == None:
                 time.sleep(.5)
-            cmd = 'ssh root@%s "/usr/sbin/tcpdump -e -y IEEE802_11_RADIO -w - -U -i wlan0 " >> /tmp/%s' % (router, router)
+            cmd = 'ssh root@%s "/usr/sbin/tcpdump -ttn -s80 -e -y IEEE802_11_RADIO -w - -U -i wlan0 " >> /tmp/%s' % (router, router)
             print '  ',cmd
             self.routers[router] = subprocess.Popen(cmd,shell=True)
             #now we can loop through routers.keys() and call .kill()
