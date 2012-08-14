@@ -2,8 +2,8 @@ import sys
 import time
 import pipe
 import Image
-import sympy
-from sympy.geometry import Point
+#import sympy
+#from sympy.geometry import Point
 from prun import IOMgr
 
 
@@ -44,7 +44,7 @@ class Floor(object):
       raise ValueError('y pos must be within %d and 0' % self.floor_image_height)
     if server not in self.collector.routers.keys():
       raise ValueError('router %s must be in collector list' % server)
-    self.routers[server] = Point(pos[0],pos[1])
+    self.routers[server] = (pos[0],pos[1])
 
 
   def compute_centroid(self, data):
@@ -61,10 +61,10 @@ class Floor(object):
       if point[1] not in self.routers.keys():
         continue
       weight = point[0] / weighted_sum
-      x_coord += ( weight*self.routers[point[1]].x )
-      y_coord += ( weight*self.routers[point[1]].y )
+      x_coord += ( weight*self.routers[point[1]][0] )
+      y_coord += ( weight*self.routers[point[1]][1] )
     print x_coord, y_coord
-    return Point(x_coord, y_coord)
+    return (x_coord, y_coord)
 
 
 def main(sample_period):
