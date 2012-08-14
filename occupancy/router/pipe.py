@@ -50,7 +50,7 @@ class Collector:
             cmd = 'ssh root@%s "%s"' % (router, ';'.join(cmds))
             print '  ',cmd
             setup_procs[router] = subprocess.Popen(cmd,shell=True)
-            self.cycles[router] = subprocess.Popen('ssh root@%s /bin/sh cycle.sh',shell=True)
+            self.cycles[router] = subprocess.Popen('ssh root@%s /bin/sh cycle.sh' % router ,shell=True)
             subprocess.call('rm /tmp/%s ; mkfifo /tmp/%s' % (router,router), shell=True)
             print '  ',router,'done!'
 
@@ -106,7 +106,6 @@ class Collector:
         for r in self.macs:
             self.macs[r] = defaultdict(list)
         self.count = 0
-
 
     def get_data(self,avg=True):
         """
@@ -165,6 +164,9 @@ def main(sample_period, graphics=False):
         fig = plt.figure()
         ax = fig.add_subplot(111)
         timestamp = 0
+        plot_data = {}
+        for r in c.macs.keys():
+            plot_data[r] = ([], [])
     while True:
         try:
             time.sleep(sample_period)
@@ -172,11 +174,13 @@ def main(sample_period, graphics=False):
             data = c.get_data()
             if graphics:
                 timestamp += sample_period
-                for (router, style) in zip(data, ['r.','b.','g.','k.']):
-                    ax.plot(timestamp, len(data[router]), style)
+                for (router, style) in zip(data, ['r-','b-','g-','k-']):
+                    plot_data[router][0].append(len(data[router]))
+                    plot_data[router][1].append(timestamp)
+                    ax.plot(plot_data[router][1], plot_data[router][0],style)
                 plt.draw()
             print [(router, len(data[router])) for router in data]
-            print data
+            #print data,'\n'
             pickle.dump(c.records,open('macs.db','wb'))
             c.clear_data()
         except KeyboardInterrupt:
