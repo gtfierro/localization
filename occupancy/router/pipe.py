@@ -127,7 +127,7 @@ class Collector:
         else:
             return self.macs
 
-    def get_data_for_mac(self, mac):
+    def get_data_for_mac(self, mac, avg=False):
         """
         Returns list of (RSSI, router-ip) tuples, where RSSI is a negative number in dBM indicating signal strength
         and router-ip is the router where that was measured.
@@ -136,8 +136,13 @@ class Collector:
         ret = []
         for router in self.macs:
             if self.macs[router].has_key(mac):
-                data = self.macs[router][mac]
-                ret.extend(zip(data, [router]*len(data)))
+                if avg: 
+                    if self.macs[router][mac]:
+                        data = numpy.average(self.macs[router][mac])
+                        ret.append((data, router))
+                else:
+                    data = self.macs[router][mac]
+                    ret.extend(zip(data, [router]*len(data)))
         return ret
 
 
@@ -180,7 +185,7 @@ def main(sample_period, graphics=False):
                     ax.plot(plot_data[router][1], plot_data[router][0],style)
                 plt.draw()
             print [(router, len(data[router])) for router in data]
-            #print data,'\n'
+            print data,'\n'
             pickle.dump(c.records,open('macs.db','wb'))
             c.clear_data()
         except KeyboardInterrupt:

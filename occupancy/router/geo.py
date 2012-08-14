@@ -54,15 +54,16 @@ class Floor(object):
     and router-ip is a string corresponding to one of the routers we've registered with
     this Floor
     """
-    weighted_sum = float(sum(map(lambda x: float(x[0]), data)))
+    sum_reciprocal = sum(map(lambda x: 1.0 / abs(float(x[0])), data))
     x_coord = 0
     y_coord = 0
     for point in data:
       if point[1] not in self.routers.keys():
         continue
-      weight = point[0] / weighted_sum
-      x_coord += ( weight*self.routers[point[1]][0] )
-      y_coord += ( weight*self.routers[point[1]][1] )
+      x_coord += ( self.routers[point[1]][0] / abs(float(point[0])) )
+      y_coord += ( self.routers[point[1]][1] / abs(float(point[0])) )
+    x_coord /= sum_reciprocal
+    y_coord /= sum_reciprocal
     print x_coord, y_coord
     return (x_coord, y_coord)
 
@@ -79,8 +80,9 @@ def main(sample_period):
       try:
         time.sleep(sample_period)
         mgr.poll(sample_period)
-        data = c.get_data(avg=False)
-        print floor.compute_centroid(c.get_data_for_mac('00:26:bb:00:2f:df'))
+        data = c.get_data()
+        print c.get_data_for_mac('00:26:bb:00:2f:df',True)
+        print floor.compute_centroid(c.get_data_for_mac('00:26:bb:00:2f:df',True))
         c.clear_data()
       except KeyboardInterrupt:
         c.kill()
