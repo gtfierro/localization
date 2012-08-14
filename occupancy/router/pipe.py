@@ -43,13 +43,15 @@ class Collector:
                 '/usr/sbin/iw dev wlan0 set channel 1',
                 '/sbin/ifconfig wlan0 up',
                 '/bin/sh cycle.sh']
+        setup_procs = {}
 
         print "Setting up routers..."
         #setup monitoring on routers
         for router in list(router_list):
-            cmd = 'ssh root@%s "%s"' % (router, ';'.join(cmds))
+            cmd = 'ssh root@%s "%s"' % (router, ';'.join(cmds[:-1]))
             print '  ',cmd
-            self.cycles[router] = subprocess.Popen(cmd,shell=True)
+            setup_procs[router] = subprocess.Popen(cmd,shell=True)
+            self.cycles[router] = subprocess.Popen(cmds[-1],shell=True)
             subprocess.call('rm /tmp/%s ; mkfifo /tmp/%s' % (router,router), shell=True)
             print '  ',router,'done!'
 
@@ -67,6 +69,8 @@ class Collector:
         print "Start tcpdump pipe from router to local..."
         #start piping to file
         for router in list(router_list):
+            while setup_procs[router].poll() == None:
+                time.sleep(.5)
             cmd = 'ssh root@%s "/usr/sbin/tcpdump -e -y IEEE802_11_RADIO -w - -U -i wlan0 -F /root/router-filter" >> /tmp/%s' % (router, router)
             print '  ',cmd
             self.routers[router] = subprocess.Popen(cmd,shell=True)
