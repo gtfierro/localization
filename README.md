@@ -76,7 +76,7 @@ Now ```cd``` into the trunk, and make sure to update the package feeds.
 ```
 cd trunk
 scripts/feeds update
-scripts/update-package-md5sum package/tcpdump
+scripts/update-package-md5sum package
 make package/symlinks
 ```
 
