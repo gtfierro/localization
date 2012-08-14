@@ -41,17 +41,16 @@ class Collector:
                 '/usr/sbin/iw phy phy0 interface add wlan0 type monitor',
                 '/usr/sbin/iw dev wlan0 set txpower fixed 0',
                 '/usr/sbin/iw dev wlan0 set channel 1',
-                '/sbin/ifconfig wlan0 up',
-                '/bin/sh cycle.sh']
+                '/sbin/ifconfig wlan0 up']
         setup_procs = {}
 
         print "Setting up routers..."
         #setup monitoring on routers
         for router in list(router_list):
-            cmd = 'ssh root@%s "%s"' % (router, ';'.join(cmds[:-1]))
+            cmd = 'ssh root@%s "%s"' % (router, ';'.join(cmds))
             print '  ',cmd
             setup_procs[router] = subprocess.Popen(cmd,shell=True)
-            self.cycles[router] = subprocess.Popen(cmds[-1],shell=True)
+            self.cycles[router] = subprocess.Popen('ssh root@%s /bin/sh cycle.sh',shell=True)
             subprocess.call('rm /tmp/%s ; mkfifo /tmp/%s' % (router,router), shell=True)
             print '  ',router,'done!'
 
