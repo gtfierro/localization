@@ -57,7 +57,8 @@ class Collector:
         print "Establishing local tcpdump reads..."
         #setup local tcpdump sessions
         for router in list(router_list):
-            cmd = 'tcpdump -tt -e -y IEEE802_11_RADIO -s80 -r /tmp/%s -F router-filter' % router
+            #cmd = 'tcpdump -tt -e -y IEEE802_11_RADIO -s80 -r /tmp/%s -F router-filter' % router
+            cmd = 'tcpdump -ttn -e -y IEEE802_11_RADIO  -r /tmp/%s -F router-filter' % router
             print '  ',cmd
             self.monitors[router] = CmdRun(self.mgr, cmd, self._handle_line, router)
             #setup the dict for each router
@@ -70,7 +71,8 @@ class Collector:
         for router in list(router_list):
             while setup_procs[router].poll() == None:
                 time.sleep(.5)
-            cmd = 'ssh root@%s "/usr/sbin/tcpdump -ttn -s80 -e -y IEEE802_11_RADIO -w - -U -i wlan0 " >> /tmp/%s' % (router, router)
+            #cmd = 'ssh root@%s "/usr/sbin/tcpdump -ttn -s80 -e -y IEEE802_11_RADIO -w - -U -i wlan0 " >> /tmp/%s' % (router, router)
+            cmd = 'ssh root@%s "/usr/sbin/tcpdump -ttn -e -y IEEE802_11_RADIO -w - -U -i wlan0 " >> /tmp/%s' % (router, router)
             print '  ',cmd
             self.routers[router] = subprocess.Popen(cmd,shell=True)
             #now we can loop through routers.keys() and call .kill()
@@ -127,6 +129,20 @@ class Collector:
         else:
             return self.macs
 
+    def get_data_normalized_min(self):
+      """
+      For each of macs for each of the router, change the signal strengths to deltas in terms of the lowest signal strength
+      """
+      ret = {}
+      for router in self.macs:
+        ret[router] = {}
+        for mac in self.macs[router]:
+          ret[router][mac] = []
+          min_sig = min(self.macs[router][mac])
+          signals = map(lambda x: x-min_sig, self.macs[router][mac])
+          ret[router][mac] = signals
+      return ret
+
     def get_data_for_mac(self, mac, avg=False):
         """
         Returns list of (RSSI, router-ip) tuples, where RSSI is a negative number in dBM indicating signal strength
@@ -151,9 +167,13 @@ class Collector:
         Parses line, and if valid, store the signal with the appropriate router and mac address
         """
         line = line.strip()
+        #print line
         m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+) ', line)
+        m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+).* ((?:[0-9]{1,3}\.){3}[0-9]{1,3}) ', line)
         if m:
-            (time, db, bssid, mac) = m.groups()
+            (time, db, bssid, mac,ipaddr) = m.groups()
+            print line
+            print ipaddr
             if bssid in self.bssids:
                 self.macs[ip][mac].append(int(db))
                 self.count += 1
