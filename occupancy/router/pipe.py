@@ -6,6 +6,7 @@ import shlex
 import numpy
 import pickle
 import time
+from ConfigParser import SaveConfigParser
 from collections import defaultdict
 from pprint import pprint
 from prun import CmdRun, IOMgr
@@ -14,7 +15,7 @@ class Collector:
     """
     Class to mitigate the collection of tcpdump data from several routers to a central source.
     """
-  
+ 
     def __init__(self, mgr, sample_period, *router_list):
         """
         mgr: IOMgr() from prun.py
@@ -26,10 +27,11 @@ class Collector:
         self.monitors = {}  #key = router-ip, value = monitor proc
         self.macs = {}      #key = router-ip, value = dict of mac addresses to list of detected signals
         self.cycles = {}    #key = router-ip, value = router cycle proc
+        self.pings = {}     #key = ping-ip, value = ping proc
         self.records = {}
 
-
         self.bssids = ['00:24:14:31:f8:af' , '00:24:14:31:f8:ae' , '00:24:14:31:f6:e4' , '00:24:14:31:f6:e0' , '00:24:14:31:f6:e3' , '00:24:14:31:f9:43' , '00:24:14:31:f6:e1' , '00:24:14:31:f6:e2' , '00:24:14:31:f9:41' , '00:24:14:31:f9:42' , '00:24:14:31:f9:44' , '00:24:14:31:f9:40' , '00:24:14:31:eb:b3' , '00:24:14:31:eb:b1' , '00:24:14:31:eb:b2' , '00:24:14:31:eb:b0' , '00:24:14:31:f8:a3' , '00:24:14:31:f8:a1' , '00:24:14:31:f8:a2' , '00:24:14:31:f8:a4' , '00:24:14:31:f8:a0' , '00:24:14:31:e6:23' , '00:24:14:31:f2:e2' , '00:24:14:31:f2:e4' , '00:24:14:31:e6:21' , '00:24:14:31:e6:22' , '00:24:14:31:e6:24' , '00:24:14:31:e6:20' , '00:24:14:31:f6:ee' , '00:24:14:31:f6:ef' , '00:24:14:31:f9:4e' , '00:24:14:31:f9:4f' , '00:24:14:31:eb:be' , '00:24:14:31:eb:bf' , '00:24:14:31:e6:2e' , '00:24:14:31:e6:2f']
+        self.monitor_macs = []
         self.count = 0
         self.mgr = mgr
         self.sample_period = sample_period
@@ -77,6 +79,9 @@ class Collector:
             self.routers[router] = subprocess.Popen(cmd,shell=True)
             #now we can loop through routers.keys() and call .kill()
             print '  Started tcpdump on %s' % router
+
+    def ping(self, ip):
+        self.pings[ip] = subprocess.Popen('ping -q %s')
 
     def get_all_macs(self,routers=None):
         """
@@ -128,20 +133,23 @@ class Collector:
             return return_dict
         else:
             return self.macs
+    
+    def get_data_normalize_to_min(self):
+        """
+        for all signal strengths s_i, get the min s_min and max s_max, and then with dS = s_max - s_min, recompute each signal strength as
+        (s_i - s_min) / dS.
+        """
+        all_signals = []
+        for router in self.macs:
+            for mac in self.macs[router]:
+                if self.macs[router][mac]:
+                    all_signals.extend(self.macs[router][mac])
+        min_signal = min(all_signals)
+        max_signal = max(all_signals)
+        delta_signal = float(max_signal - min_signal)
+        renorm_signals = map(lambda x: (x - min_signal) / delta_signal, all_signals)
+        return renorm_signals
 
-    def get_data_normalized_min(self):
-      """
-      For each of macs for each of the router, change the signal strengths to deltas in terms of the lowest signal strength
-      """
-      ret = {}
-      for router in self.macs:
-        ret[router] = {}
-        for mac in self.macs[router]:
-          ret[router][mac] = []
-          min_sig = min(self.macs[router][mac])
-          signals = map(lambda x: x-min_sig, self.macs[router][mac])
-          ret[router][mac] = signals
-      return ret
 
     def get_data_for_mac(self, mac, avg=False):
         """
@@ -169,11 +177,13 @@ class Collector:
         line = line.strip()
         #print line
         m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+) ', line)
-        m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+).* ((?:[0-9]{1,3}\.){3}[0-9]{1,3}) ', line)
+        m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+).* ((?:[0-9]{1,3}\.){3}[0-9]{1,3}) >.*', line)
         if m:
             (time, db, bssid, mac,ipaddr) = m.groups()
-            print line
-            print ipaddr
+            # if the parsed source mac is in the list of known devices, we ping the ip address to elicit packets
+            if mac in self.monitor_macs:
+                self.ping(ipaddr)
+            # if the packet is associated with our known network, we count the packet
             if bssid in self.bssids:
                 self.macs[ip][mac].append(int(db))
                 self.count += 1
@@ -196,6 +206,7 @@ def main(sample_period, graphics=False):
         try:
             time.sleep(sample_period)
             mgr.poll(sample_period)
+            #c.get_data_normalize_to_min()
             data = c.get_data()
             if graphics:
                 timestamp += sample_period
