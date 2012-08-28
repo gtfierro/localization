@@ -59,13 +59,12 @@ class Floor(object):
     y_coord = 0
     for point in data:
       signal = .001 * (10 ** (float(point[0]) / 10.0))
-      print signal, point[0]
+      #print signal, point[0]
       if point[1] not in self.routers.keys():
         continue
       weight = signal / sum_signals
       x_coord += ( self.routers[point[1]][0] * weight )
       y_coord += ( self.routers[point[1]][1] * weight )
-    print x_coord, y_coord
     return (x_coord, y_coord)
 
 
@@ -82,8 +81,11 @@ def main(sample_period):
         time.sleep(sample_period)
         mgr.poll(sample_period)
         data = c.get_data()
-        print c.get_data_for_mac('00:26:bb:00:2f:df',True)
-        print floor.compute_centroid(c.get_data_for_mac('00:26:bb:00:2f:df',True))
+        data = c.get_data_normalize_to_min()
+        #print c.get_data_for_mac('00:26:bb:00:2f:df',True)
+        #print floor.compute_centroid(c.get_data_for_mac('00:26:bb:00:2f:df',True))
+        print c.get_data_for_mac('f8:0c:f3:1d:16:49',True,datadict=c.get_data_normalize_to_min())
+        print floor.compute_centroid(c.get_data_for_mac('f8:0c:f3:1d:16:49',True,datadict=c.get_data_normalize_to_min()))
         c.clear_data()
       except KeyboardInterrupt:
         c.kill()

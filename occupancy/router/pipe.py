@@ -30,7 +30,7 @@ class Collector:
         self.records = {}
 
         self.bssids = ['00:24:14:31:f8:af' , '00:24:14:31:f8:ae' , '00:24:14:31:f6:e4' , '00:24:14:31:f6:e0' , '00:24:14:31:f6:e3' , '00:24:14:31:f9:43' , '00:24:14:31:f6:e1' , '00:24:14:31:f6:e2' , '00:24:14:31:f9:41' , '00:24:14:31:f9:42' , '00:24:14:31:f9:44' , '00:24:14:31:f9:40' , '00:24:14:31:eb:b3' , '00:24:14:31:eb:b1' , '00:24:14:31:eb:b2' , '00:24:14:31:eb:b0' , '00:24:14:31:f8:a3' , '00:24:14:31:f8:a1' , '00:24:14:31:f8:a2' , '00:24:14:31:f8:a4' , '00:24:14:31:f8:a0' , '00:24:14:31:e6:23' , '00:24:14:31:f2:e2' , '00:24:14:31:f2:e4' , '00:24:14:31:e6:21' , '00:24:14:31:e6:22' , '00:24:14:31:e6:24' , '00:24:14:31:e6:20' , '00:24:14:31:f6:ee' , '00:24:14:31:f6:ef' , '00:24:14:31:f9:4e' , '00:24:14:31:f9:4f' , '00:24:14:31:eb:be' , '00:24:14:31:eb:bf' , '00:24:14:31:e6:2e' , '00:24:14:31:e6:2f']
-        self.monitor_macs = ['f8:0c:f3:1d:16:49']
+        self.monitor_macs = {'f8:0c:f3:1d:16:49': '10.10.65.4'}
         self.count = 0
         self.mgr = mgr
         self.sample_period = sample_period
@@ -38,6 +38,7 @@ class Collector:
         #commands to setup monitoring interface and channel cycling
         cmds = ['/usr/bin/killall tcpdump',
                 '/usr/bin/killall sh',
+                '/usr/bin/killall ping',
                 '/usr/sbin/iw dev wlan0 del',
                 '/usr/sbin/iw phy phy0 interface add wlan0 type monitor',
                 '/usr/sbin/iw dev wlan0 set txpower fixed 0',
@@ -55,11 +56,19 @@ class Collector:
             subprocess.call('rm /tmp/%s ; mkfifo /tmp/%s' % (router,router), shell=True)
             print '  ',router,'done!'
 
+        print 'Start router ping threads...'
+        for router in list(router_list):
+            for m in self.monitor_macs:
+                cmd = 'ssh root@%s ping -q %s' % (router, self.monitor_macs[m])
+                self.pings[router] = subprocess.Popen(cmd, shell=True)
+                print 'pinging', m,'@',self.monitor_macs[m]
+            print '  ',router,'done!'
+
         print "Establishing local tcpdump reads..."
         #setup local tcpdump sessions
         for router in list(router_list):
             #cmd = 'tcpdump -tt -e -y IEEE802_11_RADIO -s80 -r /tmp/%s -F router-filter' % router
-            cmd = 'tcpdump -ttn -e -y IEEE802_11_RADIO  -r /tmp/%s -F router-filter' % router
+            cmd = 'tcpdump -ttn -e -y IEEE802_11_RADIO  -r /tmp/%s' % router
             print '  ',cmd
             self.monitors[router] = CmdRun(self.mgr, cmd, self._handle_line, router)
             #setup the dict for each router
@@ -78,9 +87,6 @@ class Collector:
             self.routers[router] = subprocess.Popen(cmd,shell=True)
             #now we can loop through routers.keys() and call .kill()
             print '  Started tcpdump on %s' % router
-
-    def ping(self, ip):
-        self.pings[ip] = subprocess.Popen('ping -q %s')
 
     def get_all_macs(self,routers=None):
         """
@@ -141,6 +147,7 @@ class Collector:
         (s_i - s_min) / dS.
         """
         all_signals = []
+        ret = {}
         for router in self.macs:
             for mac in self.macs[router]:
                 if self.macs[router][mac]:
@@ -148,25 +155,31 @@ class Collector:
         min_signal = min(all_signals)
         max_signal = max(all_signals)
         delta_signal = float(max_signal - min_signal)
-        renorm_signals = map(lambda x: (x - min_signal) / delta_signal, all_signals)
-        return renorm_signals
+        for router in self.macs:
+            ret[router] = {}
+            for mac in self.macs[router]:
+                if self.macs[router][mac]:
+                    ret[router][mac] = map(lambda x: ((x-min_signal) / delta_signal) + 1, self.macs[router][mac])
+        return ret
 
 
-    def get_data_for_mac(self, mac, avg=False):
+    def get_data_for_mac(self, mac, avg=False, datadict=None):
         """
         Returns list of (RSSI, router-ip) tuples, where RSSI is a negative number in dBM indicating signal strength
         and router-ip is the router where that was measured.
         Only returns signals for [mac]
         """
         ret = []
-        for router in self.macs:
-            if self.macs[router].has_key(mac):
+        if not datadict:
+            datadict = self.macs
+        for router in datadict:
+            if datadict[router].has_key(mac):
                 if avg: 
-                    if self.macs[router][mac]:
-                        data = numpy.average(self.macs[router][mac])
+                    if datadict[router][mac]:
+                        data = numpy.average(datadict[router][mac])
                         ret.append((data, router))
                 else:
-                    data = self.macs[router][mac]
+                    data = datadict[router][mac]
                     ret.extend(zip(data, [router]*len(data)))
         return ret
 
@@ -178,18 +191,17 @@ class Collector:
         line = line.strip()
         #print line
         mac = ipaddr = ''
-        m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+).* ((?:[0-9]{1,3}\.){3}[0-9]{1,3}) >.*', line)
+        m = re.search('^(\d+\.\d+).* (-?\d+)dB signal .* TA:([0-9a-f:]+).* Request-To-Send',line)
+        #if self.monitor_macs['f8:0c:f3:1d:16:49'] in line:
+        #    print line
         if m:
-            (time, db, bssid, mac,ipaddr) = m.groups()
+            (time, db, mac) = m.groups()
         else:
             m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+) ', line)
             if m:
                 (time, db, bssid, mac) = m.groups()
             # if the parsed source mac is in the list of known devices, we ping the ip address to elicit packets
-        if mac in self.monitor_macs:
-            if ipaddr:
-                print mac,'has ip',ipaddr
-                self.ping(ipaddr)
+        if mac in self.monitor_macs.keys():
             self.macs[ip][mac].append(int(db))
             self.count += 1
 
