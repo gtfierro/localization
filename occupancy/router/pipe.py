@@ -159,7 +159,7 @@ class Collector:
             ret[router] = {}
             for mac in self.macs[router]:
                 if self.macs[router][mac]:
-                    ret[router][mac] = map(lambda x: ((x-min_signal) / delta_signal) + 1, self.macs[router][mac])
+                    ret[router][mac] = map(lambda x: ((x-min_signal+1) / delta_signal), self.macs[router][mac])
         return ret
 
 
