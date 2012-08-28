@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import pipe
@@ -47,9 +48,9 @@ class Floor(object):
     self.routers[server] = (pos[0],pos[1])
 
 
-  def compute_centroid(self, data):
+  def compute_centroid_exp(self, data):
     """
-    Computes the (x,y) position of the centroid given [data].
+    Computes the (x,y) position of the centroid given [data]. Converts dBM into linear scale
     [data] is a list of tuples (RSSI, router-ip), where RSSI is a negative number in dBM
     and router-ip is a string corresponding to one of the routers we've registered with
     this Floor
@@ -67,8 +68,28 @@ class Floor(object):
       y_coord += ( self.routers[point[1]][1] * weight )
     return (x_coord, y_coord)
 
+  def compute_centroid(self, data):
+    """
+    Computes the (x,y) position of the centroid given [data]. Converts dBM into linear scale
+    [data] is a list of tuples (RSSI, router-ip), where RSSI is a negative number in dBM
+    and router-ip is a string corresponding to one of the routers we've registered with
+    this Floor
+    """
+    sum_signals = sum(map(lambda x: x[0], data))
+    x_coord = 0
+    y_coord = 0
+    for point in data:
+      signal = float(point[0])
+      #print signal, point[0]
+      if point[1] not in self.routers.keys():
+        continue
+      weight = signal / sum_signals
+      x_coord += ( self.routers[point[1]][0] * weight )
+      y_coord += ( self.routers[point[1]][1] * weight )
+    return (x_coord, y_coord)
 
-def main(sample_period):
+
+def main(sample_period,graphics=False):
     mgr = IOMgr()
     c = pipe.Collector(mgr,sample_period,"128.32.156.64","128.32.156.67","128.32.156.131","128.32.156.45")
     floor = Floor('floor4.png',c)
@@ -76,20 +97,36 @@ def main(sample_period):
     floor.add_router('128.32.156.64' ,(233,157))
     floor.add_router('128.32.156.67' ,(589,117))
     floor.add_router('128.32.156.45' ,(466,132))
+    if graphics:
+        print "#" * 24
+        print "#Using Pygame graphics!#"
+        print "#" * 24
+        import pygame
+        pygame.init()
+        screen = pygame.display.set_mode((600,240))
+        fl = pygame.image.load(os.path.join('floor4.png'))
+        fl = pygame.transform.scale(fl, (600,240))
+        screen.blit(fl,(0,0))
     while True:
       try:
         time.sleep(sample_period)
         mgr.poll(sample_period)
-        data = c.get_data()
-        data = c.get_data_normalize_to_min()
+        #data = c.get_data()
+        #data = c.get_data_normalize_to_min()
         #print c.get_data_for_mac('00:26:bb:00:2f:df',True)
         #print floor.compute_centroid(c.get_data_for_mac('00:26:bb:00:2f:df',True))
-        print c.get_data_for_mac('f8:0c:f3:1d:16:49',True,datadict=c.get_data_normalize_to_min())
-        print floor.compute_centroid(c.get_data_for_mac('f8:0c:f3:1d:16:49',True,datadict=c.get_data_normalize_to_min()))
+        print c.get_data_for_mac('f8:0c:f3:1d:16:49',True)
+        #log_centroid = floor.compute_centroid(c.get_data_for_mac('f8:0c:f3:1d:16:49',True))
+        lin_centroid = floor.compute_centroid_exp(c.get_data_for_mac('f8:0c:f3:1d:16:49',True))
+        print lin_centroid
+        if graphics:
+            #screen.blit(fl,(0,0))
+            pygame.draw.circle(screen, (0,0,255), map(lambda x: int(x), lin_centroid), 5)
+            pygame.display.flip()
         c.clear_data()
       except KeyboardInterrupt:
         c.kill()
         sys.exit(0)
 
 if __name__=="__main__":
-    main(int(sys.argv[1]) if len(sys.argv) > 1 else 10)
+    main(int(sys.argv[1]) if len(sys.argv) > 1 else 10, int(sys.argv[2] if len(sys.argv) > 2 else 0))
