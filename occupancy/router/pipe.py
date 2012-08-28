@@ -6,7 +6,6 @@ import shlex
 import numpy
 import pickle
 import time
-from ConfigParser import SaveConfigParser
 from collections import defaultdict
 from pprint import pprint
 from prun import CmdRun, IOMgr
@@ -31,7 +30,7 @@ class Collector:
         self.records = {}
 
         self.bssids = ['00:24:14:31:f8:af' , '00:24:14:31:f8:ae' , '00:24:14:31:f6:e4' , '00:24:14:31:f6:e0' , '00:24:14:31:f6:e3' , '00:24:14:31:f9:43' , '00:24:14:31:f6:e1' , '00:24:14:31:f6:e2' , '00:24:14:31:f9:41' , '00:24:14:31:f9:42' , '00:24:14:31:f9:44' , '00:24:14:31:f9:40' , '00:24:14:31:eb:b3' , '00:24:14:31:eb:b1' , '00:24:14:31:eb:b2' , '00:24:14:31:eb:b0' , '00:24:14:31:f8:a3' , '00:24:14:31:f8:a1' , '00:24:14:31:f8:a2' , '00:24:14:31:f8:a4' , '00:24:14:31:f8:a0' , '00:24:14:31:e6:23' , '00:24:14:31:f2:e2' , '00:24:14:31:f2:e4' , '00:24:14:31:e6:21' , '00:24:14:31:e6:22' , '00:24:14:31:e6:24' , '00:24:14:31:e6:20' , '00:24:14:31:f6:ee' , '00:24:14:31:f6:ef' , '00:24:14:31:f9:4e' , '00:24:14:31:f9:4f' , '00:24:14:31:eb:be' , '00:24:14:31:eb:bf' , '00:24:14:31:e6:2e' , '00:24:14:31:e6:2f']
-        self.monitor_macs = []
+        self.monitor_macs = ['f8:0c:f3:1d:16:49']
         self.count = 0
         self.mgr = mgr
         self.sample_period = sample_period
@@ -105,6 +104,8 @@ class Collector:
             self.routers[r].kill()
         for c in self.cycles:
             self.cycles[c].kill()
+        for p in self.pings:
+            self.pings[p].kill()
 
     def clear_data(self):
         """
@@ -176,17 +177,21 @@ class Collector:
         """
         line = line.strip()
         #print line
-        m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+) ', line)
+        mac = ipaddr = ''
         m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+).* ((?:[0-9]{1,3}\.){3}[0-9]{1,3}) >.*', line)
         if m:
             (time, db, bssid, mac,ipaddr) = m.groups()
+        else:
+            m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+) ', line)
+            if m:
+                (time, db, bssid, mac) = m.groups()
             # if the parsed source mac is in the list of known devices, we ping the ip address to elicit packets
-            if mac in self.monitor_macs:
+        if mac in self.monitor_macs:
+            if ipaddr:
+                print mac,'has ip',ipaddr
                 self.ping(ipaddr)
-            # if the packet is associated with our known network, we count the packet
-            if bssid in self.bssids:
-                self.macs[ip][mac].append(int(db))
-                self.count += 1
+            self.macs[ip][mac].append(int(db))
+            self.count += 1
 
 def main(sample_period, graphics=False):
     mgr = IOMgr()
