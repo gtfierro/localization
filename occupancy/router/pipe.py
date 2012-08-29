@@ -58,14 +58,14 @@ class Collector:
             subprocess.call('rm /tmp/%s ; mkfifo /tmp/%s' % (router,router), shell=True)
             print '  ',router,'done!'
 
-        print 'Start router ping threads...'
-        for router in list(router_list):
-            for m in self.monitor_macs:
-                #cmd = 'ssh root@%s ping -q %s' % (router, self.monitor_macs[m])
-                cmd = 'ssh root@%s ping -c1 -q %s' % (router, self.monitor_macs[m])
-                self.pings[router] = subprocess.Popen(cmd, shell=True)
-                print 'pinging', m,'@',self.monitor_macs[m]
-            print '  ',router,'done!'
+        #print 'Start router ping threads...'
+        #for router in list(router_list):
+        #    for m in self.monitor_macs:
+        #        #cmd = 'ssh root@%s ping -q %s' % (router, self.monitor_macs[m])
+        #        cmd = 'ssh root@%s ping -c1 -q %s' % (router, self.monitor_macs[m])
+        #        self.pings[router] = subprocess.Popen(cmd, shell=True)
+        #        print 'pinging', m,'@',self.monitor_macs[m]
+        #    print '  ',router,'done!'
 
         print "Establishing local tcpdump reads..."
         #setup local tcpdump sessions
@@ -113,8 +113,8 @@ class Collector:
             self.routers[r].kill()
         for c in self.cycles:
             self.cycles[c].kill()
-        for p in self.pings:
-            self.pings[p].kill()
+        #for p in self.pings:
+        #    self.pings[p].kill()
 
     def clear_data(self):
         """
