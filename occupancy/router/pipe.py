@@ -30,7 +30,9 @@ class Collector:
         self.records = {}
 
         self.bssids = ['00:24:14:31:f8:af' , '00:24:14:31:f8:ae' , '00:24:14:31:f6:e4' , '00:24:14:31:f6:e0' , '00:24:14:31:f6:e3' , '00:24:14:31:f9:43' , '00:24:14:31:f6:e1' , '00:24:14:31:f6:e2' , '00:24:14:31:f9:41' , '00:24:14:31:f9:42' , '00:24:14:31:f9:44' , '00:24:14:31:f9:40' , '00:24:14:31:eb:b3' , '00:24:14:31:eb:b1' , '00:24:14:31:eb:b2' , '00:24:14:31:eb:b0' , '00:24:14:31:f8:a3' , '00:24:14:31:f8:a1' , '00:24:14:31:f8:a2' , '00:24:14:31:f8:a4' , '00:24:14:31:f8:a0' , '00:24:14:31:e6:23' , '00:24:14:31:f2:e2' , '00:24:14:31:f2:e4' , '00:24:14:31:e6:21' , '00:24:14:31:e6:22' , '00:24:14:31:e6:24' , '00:24:14:31:e6:20' , '00:24:14:31:f6:ee' , '00:24:14:31:f6:ef' , '00:24:14:31:f9:4e' , '00:24:14:31:f9:4f' , '00:24:14:31:eb:be' , '00:24:14:31:eb:bf' , '00:24:14:31:e6:2e' , '00:24:14:31:e6:2f']
-        self.monitor_macs = {'f8:0c:f3:1d:16:49': '10.10.65.4'}
+        self.monitor_macs = {'f8:0c:f3:1d:16:49': '10.10.65.4',
+                             'f8:0c:f3:1c:ec:a2': '10.10.66.84',
+                             '04:46:65:f8:1a:1d': '10.10.66.111'}
         self.count = 0
         self.mgr = mgr
         self.sample_period = sample_period
@@ -59,7 +61,8 @@ class Collector:
         print 'Start router ping threads...'
         for router in list(router_list):
             for m in self.monitor_macs:
-                cmd = 'ssh root@%s ping -q %s' % (router, self.monitor_macs[m])
+                #cmd = 'ssh root@%s ping -q %s' % (router, self.monitor_macs[m])
+                cmd = 'ssh root@%s ping -c1 -q %s' % (router, self.monitor_macs[m])
                 self.pings[router] = subprocess.Popen(cmd, shell=True)
                 print 'pinging', m,'@',self.monitor_macs[m]
             print '  ',router,'done!'
@@ -141,6 +144,8 @@ class Collector:
         else:
             return self.macs
     
+    #TODO: maybe subtract the min signal *per router* for all RSSI for *that router* instead of subtracting the overall min
+    #      from all signals
     def get_data_normalize_to_min(self):
         """
         for all signal strengths s_i, get the min s_min and max s_max, and then with dS = s_max - s_min, recompute each signal strength as
@@ -159,7 +164,8 @@ class Collector:
             ret[router] = {}
             for mac in self.macs[router]:
                 if self.macs[router][mac]:
-                    ret[router][mac] = map(lambda x: ((x-min_signal+1) / delta_signal), self.macs[router][mac])
+                    #ret[router][mac] = map(lambda x: ((x-min_signal+1) / delta_signal), self.macs[router][mac])
+                    ret[router][mac] = map(lambda x: (x-min_signal+1), self.macs[router][mac])
         return ret
 
 
