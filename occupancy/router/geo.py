@@ -115,13 +115,19 @@ def main(sample_period,graphics=False):
         #data = c.get_data_normalize_to_min()
         #print c.get_data_for_mac('00:26:bb:00:2f:df',True)
         #print floor.compute_centroid(c.get_data_for_mac('00:26:bb:00:2f:df',True))
-        print c.get_data_for_mac('f8:0c:f3:1d:16:49',True)
+        data = c.get_data_normalize_to_min()
+        print c.get_data_for_mac('f8:0c:f3:1d:16:49',True,datadict=data)
+        print c.get_data_for_mac('f8:0c:f3:1c:ec:a2',True,datadict=data)
+        print c.get_data_for_mac('04:46:65:f8:1a:1d',True,datadict=data)
         #log_centroid = floor.compute_centroid(c.get_data_for_mac('f8:0c:f3:1d:16:49',True))
-        lin_centroid = floor.compute_centroid_exp(c.get_data_for_mac('f8:0c:f3:1d:16:49',True))
-        print lin_centroid
+        lin_centroid = floor.compute_centroid_exp(c.get_data_for_mac('f8:0c:f3:1d:16:49',True ,datadict=data))
+        lin_centroid2 = floor.compute_centroid_exp(c.get_data_for_mac('f8:0c:f3:1c:ec:a2',True,datadict=data))
+        lin_centroid3 = floor.compute_centroid_exp(c.get_data_for_mac('04:46:65:f8:1a:1d',True,datadict=data))
         if graphics:
             #screen.blit(fl,(0,0))
             pygame.draw.circle(screen, (0,0,255), map(lambda x: int(x), lin_centroid), 5)
+            pygame.draw.circle(screen, (225,0,0), map(lambda x: int(x), lin_centroid2), 5)
+            pygame.draw.circle(screen, (0,255,0), map(lambda x: int(x), lin_centroid3), 5)
             pygame.display.flip()
         c.clear_data()
       except KeyboardInterrupt:
