@@ -106,7 +106,7 @@ class Floor(object):
       weight = signal / sum_signals
       x_coord += ( self.routers[point[1]][0] * weight )
       y_coord += ( self.routers[point[1]][1] * weight )
-      self.centroid_store[mac].append((x_coord,y_coord))
+    self.centroid_store[mac].append((x_coord,y_coord))
     return x_coord, y_coord
 
   def compute_centroid_lin(self, mac, data):
@@ -126,7 +126,7 @@ class Floor(object):
       weight = signal / sum_signals
       x_coord += ( self.routers[point[1]][0] * weight )
       y_coord += ( self.routers[point[1]][1] * weight )
-      self.centroid_store[mac].append((x_coord,y_coord))
+    self.centroid_store[mac].append((x_coord,y_coord))
     return x_coord, y_coord
 
   def get_centroid(self, mac):
@@ -139,12 +139,12 @@ class Floor(object):
     # compute the centroid from the recent data
     self.compute_centroid_exp(mac,macdata)
     # use self.centroid_store historical data
-    return self._avg_n_closest_points(2, self.centroid_store[mac])
+    return self._avg_n_closest_points(5, self.centroid_store[mac])
 
 def main(sample_period,graphics=False):
     mgr = IOMgr()
     c = pipe.Collector(mgr,sample_period,"128.32.156.64","128.32.156.67","128.32.156.131","128.32.156.45")
-    floor = Floor('floor4.png',c,'f8:0c:f3:1d:16:49')#,'f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
+    floor = Floor('floor4.png',c,'f8:0c:f3:1d:16:49','f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
     floor.add_router('128.32.156.131',(116,147))
     floor.add_router('128.32.156.64' ,(233,157))
     floor.add_router('128.32.156.67' ,(589,117))
@@ -167,12 +167,13 @@ def main(sample_period,graphics=False):
         for mac in floor.macs:
           centroids.append(floor.get_centroid(mac))
         if graphics:
-            #screen.blit(fl,(0,0))
+            screen.blit(fl,(0,0))
+            #for mac in floor.macs:
+            #  print floor.centroid_store[mac]
+            #  for cen in floor.centroid_store[mac]:
+            #    pygame.draw.circle(screen, (0,255,0), map(lambda x: int(x), list(cen)), 5)
             for cen,col in zip(centroids, [(255,0,0),(0,255,0),(0,0,255),(255,255,0)]):
               pygame.draw.circle(screen, col, map(lambda x: int(x), cen), 5)
-            for mac in floor.macs:
-              for cen in floor.centroid_store[mac]:
-                pygame.draw.circle(screen, (0,255,0), map(lambda x: int(x), list(cen)), 5)
             pygame.display.flip()
         c.clear_data()
       except KeyboardInterrupt:
