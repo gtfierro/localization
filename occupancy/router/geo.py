@@ -21,6 +21,7 @@ class Floor(object):
     [collector] is of class pipe.Collector and serves as the mechanism for getting data
     """
     self.routers = {}
+    self.centroid_store = {}
     self.collector = collector
 
     if isinstance(floor_image, str):
@@ -86,8 +87,31 @@ class Floor(object):
       weight = signal / sum_signals
       x_coord += ( self.routers[point[1]][0] * weight )
       y_coord += ( self.routers[point[1]][1] * weight )
-    return (x_coord, y_coord)
+      self.store_centroid(point, x_coord, y_coord)
+    return self.avg_centroid(point)
 
+  def store_centroid(self, key, x, y):
+    """
+    Stores the old centroid values so that they can be averaged out.
+    """
+    if key not in centroid_store:
+      centroid_store[key] = []
+    centroid_store[key].append((x, y))
+    if len(centroid_store[key]) > 5:
+      centroid_store[key] = centroid_store[key][1:]
+
+  def avg_centroid(self, key):
+    """
+    Returns the average centroid stored in the store.
+    """
+    data = self.centroid_store[key]
+    denom = len(data)
+    x = 0
+    y = 0
+    for point in data:
+      x += point[0]
+      y += point[1]
+    return (x/denom, y/denom)
 
 def main(sample_period,graphics=False):
     mgr = IOMgr()
