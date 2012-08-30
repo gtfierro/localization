@@ -3,6 +3,8 @@ import sys
 import time
 import pipe
 import Image
+import math
+from collections import deque
 #import sympy
 #from sympy.geometry import Point
 from prun import IOMgr
@@ -14,14 +16,18 @@ class Floor(object):
   and provide facilities for performing operations using the router measurements
   """
 
-  def __init__(self, floor_image, collector):
+  def __init__(self, floor_image, collector,*macs):
     """
     [floor_image] will be either a file name or a PIL image. All coordinates for internal structures of this
     floor will be relative to the image dimensions. Upper left corner is (0,0).
     [collector] is of class pipe.Collector and serves as the mechanism for getting data
+    [macs] is a list of mac address we are tracking
     """
     self.routers = {}
-    self.centroid_store = {}
+    self.macs = list(macs)
+    self.centroid_store = {}  #key = mac, value = deque(maxlen=10)
+    for mac in self.macs:
+      self.centroid_store[mac] = deque(maxlen=10)
     self.collector = collector
 
     if isinstance(floor_image, str):
@@ -48,8 +54,42 @@ class Floor(object):
       raise ValueError('router %s must be in collector list' % server)
     self.routers[server] = (pos[0],pos[1])
 
+  def _distance(self, point1, point2):
+    """
+    Computes the manhattan distance between point1 and point2
+    """
+    return math.sqrt( (point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
 
-  def compute_centroid_exp(self, data):
+  def _average_points(self, pointlist):
+    """
+    Computes the average (x,y) point from a list of (x,y) points
+    """
+    x_coord = sum(map(lambda x: x[0], pointlist)) / float(len(pointlist))
+    y_coord = sum(map(lambda x: x[1], pointlist)) / float(len(pointlist))
+    return (x_coord,y_coord)
+
+  def _avg_n_closest_points(self, n, pointlist):
+    """
+    Return the average of the n closest points out of pointlist
+    --
+    for each point, compute distance to the other points. Sort them.
+    Sum the first n-1 points, take the list with the smallest sum.
+    """
+    n = max(len(pointlist),n)
+    point_dict = {}
+    sum_dict = {}
+    for p in pointlist:
+      other_points = filter(lambda x: x!=p, pointlist)
+      dist_to_points = map(lambda x: (self._distance(x,p), x),other_points)
+      point_dict[p] = sorted(dist_to_points, key = lambda x: x[0]) # sort by distance
+      sum_dict[p] = sum(map(lambda x: x[0], point_dict[p][:n-1]))
+    min_sum_point = min(sum_dict, key=lambda x: sum_dict[x])
+    print point_dict[p][:n-1]
+    points = map(lambda x: x[1], point_dict[p][:n-1])
+    points.append(min_sum_point)
+    return self._average_points(points)
+
+  def compute_centroid_exp(self,mac, data):
     """
     Computes the (x,y) position of the centroid given [data]. Converts dBM into linear scale
     [data] is a list of tuples (RSSI, router-ip), where RSSI is a negative number in dBM
@@ -61,15 +101,15 @@ class Floor(object):
     y_coord = 0
     for point in data:
       signal = .001 * (10 ** (float(point[0]) / 10.0))
-      #print signal, point[0]
       if point[1] not in self.routers.keys():
         continue
       weight = signal / sum_signals
       x_coord += ( self.routers[point[1]][0] * weight )
       y_coord += ( self.routers[point[1]][1] * weight )
-    return (x_coord, y_coord)
+      self.centroid_store[mac].append((x_coord,y_coord))
+    return x_coord, y_coord
 
-  def compute_centroid(self, data):
+  def compute_centroid_lin(self, mac, data):
     """
     Computes the (x,y) position of the centroid given [data]. Converts dBM into linear scale
     [data] is a list of tuples (RSSI, router-ip), where RSSI is a negative number in dBM
@@ -81,42 +121,30 @@ class Floor(object):
     y_coord = 0
     for point in data:
       signal = float(point[0])
-      #print signal, point[0]
       if point[1] not in self.routers.keys():
         continue
       weight = signal / sum_signals
       x_coord += ( self.routers[point[1]][0] * weight )
       y_coord += ( self.routers[point[1]][1] * weight )
-      self.store_centroid(point, x_coord, y_coord)
-    return self.avg_centroid(point)
+      self.centroid_store[mac].append((x_coord,y_coord))
+    return x_coord, y_coord
 
-  def store_centroid(self, key, x, y):
+  def get_centroid(self, mac):
     """
-    Stores the old centroid values so that they can be averaged out.
+    returns the centroid for a given mac address
     """
-    if key not in centroid_store:
-      centroid_store[key] = []
-    centroid_store[key].append((x, y))
-    if len(centroid_store[key]) > 5:
-      centroid_store[key] = centroid_store[key][1:]
-
-  def avg_centroid(self, key):
-    """
-    Returns the average centroid stored in the store.
-    """
-    data = self.centroid_store[key]
-    denom = len(data)
-    x = 0
-    y = 0
-    for point in data:
-      x += point[0]
-      y += point[1]
-    return (x/denom, y/denom)
+    # get the most recent data for the given mac address
+    alldata = self.collector.get_data_normalize_to_min()
+    macdata = self.collector.get_data_for_mac(mac, True, datadict=alldata)
+    # compute the centroid from the recent data
+    self.compute_centroid_exp(mac,macdata)
+    # use self.centroid_store historical data
+    return self._avg_n_closest_points(2, self.centroid_store[mac])
 
 def main(sample_period,graphics=False):
     mgr = IOMgr()
     c = pipe.Collector(mgr,sample_period,"128.32.156.64","128.32.156.67","128.32.156.131","128.32.156.45")
-    floor = Floor('floor4.png',c)
+    floor = Floor('floor4.png',c,'f8:0c:f3:1d:16:49')#,'f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
     floor.add_router('128.32.156.131',(116,147))
     floor.add_router('128.32.156.64' ,(233,157))
     floor.add_router('128.32.156.67' ,(589,117))
@@ -135,23 +163,16 @@ def main(sample_period,graphics=False):
       try:
         time.sleep(sample_period)
         mgr.poll(sample_period)
-        #data = c.get_data()
-        #data = c.get_data_normalize_to_min()
-        #print c.get_data_for_mac('00:26:bb:00:2f:df',True)
-        #print floor.compute_centroid(c.get_data_for_mac('00:26:bb:00:2f:df',True))
-        data = c.get_data_normalize_to_min()
-        print c.get_data_for_mac('f8:0c:f3:1d:16:49',True,datadict=data)
-        print c.get_data_for_mac('f8:0c:f3:1c:ec:a2',True,datadict=data)
-        print c.get_data_for_mac('04:46:65:f8:1a:1d',True,datadict=data)
-        #log_centroid = floor.compute_centroid(c.get_data_for_mac('f8:0c:f3:1d:16:49',True))
-        lin_centroid = floor.compute_centroid_exp(c.get_data_for_mac('f8:0c:f3:1d:16:49',True ,datadict=data))
-        lin_centroid2 = floor.compute_centroid_exp(c.get_data_for_mac('f8:0c:f3:1c:ec:a2',True,datadict=data))
-        lin_centroid3 = floor.compute_centroid_exp(c.get_data_for_mac('04:46:65:f8:1a:1d',True,datadict=data))
+        centroids = []
+        for mac in floor.macs:
+          centroids.append(floor.get_centroid(mac))
         if graphics:
             #screen.blit(fl,(0,0))
-            pygame.draw.circle(screen, (0,0,255), map(lambda x: int(x), lin_centroid), 5)
-            pygame.draw.circle(screen, (225,0,0), map(lambda x: int(x), lin_centroid2), 5)
-            pygame.draw.circle(screen, (0,255,0), map(lambda x: int(x), lin_centroid3), 5)
+            for cen,col in zip(centroids, [(255,0,0),(0,255,0),(0,0,255),(255,255,0)]):
+              pygame.draw.circle(screen, col, map(lambda x: int(x), cen), 5)
+            for mac in floor.macs:
+              for cen in floor.centroid_store[mac]:
+                pygame.draw.circle(screen, (0,255,0), map(lambda x: int(x), list(cen)), 5)
             pygame.display.flip()
         c.clear_data()
       except KeyboardInterrupt:
