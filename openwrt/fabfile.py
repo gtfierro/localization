@@ -5,6 +5,10 @@ env.hosts = ['128.32.156.45', '128.32.156.64', '128.32.156.67', '128.32.156.131'
 env.warn_only = True
 
 @parallel
+def reset():
+  run('reboot',shell=False)
+
+@parallel
 def uname():
   run('uname',shell=False)
 
