@@ -1,0 +1,19 @@
+**Demo Paper Outline**
+
+#Introduction
+-importance of occupancy detection for saving energy
+  -no need for occupants to directly interact with environment
+  -only turn on lights/heat when people are there
+  -they don't need to inform system directly, so more likely
+   that it'll work
+-previous work
+  -focused on accuracy, specialized hardware, lots of training
+  -localization only needs to have >= the granularity that we can control
+    -in practice, this works out to having to localize within 10-20% of the total floor area
+  -cheap, ubiquitously available, easily configurable hardware
+    -no training required, just minor setup
+
+#Explanation
+
+
+#Demonstration
