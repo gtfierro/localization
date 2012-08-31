@@ -106,7 +106,8 @@ class Floor(object):
       weight = signal / sum_signals
       x_coord += ( self.routers[point[1]][0] * weight )
       y_coord += ( self.routers[point[1]][1] * weight )
-    self.centroid_store[mac].append((x_coord,y_coord))
+    if (x_coord,y_coord) != (0,0):
+      self.centroid_store[mac].append((x_coord,y_coord))
     return x_coord, y_coord
 
   def compute_centroid_lin(self, mac, data):
@@ -126,7 +127,8 @@ class Floor(object):
       weight = signal / sum_signals
       x_coord += ( self.routers[point[1]][0] * weight )
       y_coord += ( self.routers[point[1]][1] * weight )
-    self.centroid_store[mac].append((x_coord,y_coord))
+    if (x_coord,y_coord) != (0,0):
+      self.centroid_store[mac].append((x_coord,y_coord))
     return x_coord, y_coord
 
   def get_centroid(self, mac):
