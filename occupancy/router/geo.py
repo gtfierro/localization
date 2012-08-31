@@ -105,7 +105,7 @@ class Floor(object):
       point_dict[p] = sorted(dist_to_points, key = lambda x: x[0]) # sort by distance
       sum_dict[p] = sum(map(lambda x: x[0], point_dict[p][:n-1]))
     min_sum_point = min(sum_dict, key=lambda x: sum_dict[x])
-    points = self._filter_n_std_devs(2, point_dict[p][:n-1])
+    points = self._filter_n_std_devs(1.5, point_dict[p][:n-1])
     points.append(min_sum_point)
     return self._average_points(points)
 
@@ -164,7 +164,7 @@ class Floor(object):
 def main(sample_period,graphics=False):
     mgr = IOMgr()
     c = pipe.Collector(mgr,sample_period,"128.32.156.64","128.32.156.67","128.32.156.131","128.32.156.45")
-    floor = Floor('floor4.png',c,'f8:0c:f3:1d:16:49','f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
+    floor = Floor('floor4.png',c,'f8:0c:f3:1d:16:49')#,'f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
     floor.add_router('128.32.156.131',(116,147))
     floor.add_router('128.32.156.64' ,(233,157))
     floor.add_router('128.32.156.67' ,(589,117))
@@ -188,10 +188,10 @@ def main(sample_period,graphics=False):
           centroids.append(floor.get_centroid(mac))
         if graphics:
             screen.blit(fl,(0,0))
-            #for mac in floor.macs:
-            #  print floor.centroid_store[mac]
-            #  for cen in floor.centroid_store[mac]:
-            #    pygame.draw.circle(screen, (0,255,0), map(lambda x: int(x), list(cen)), 5)
+            for mac in floor.macs:
+              print floor.centroid_store[mac]
+              for cen in floor.centroid_store[mac]:
+                pygame.draw.circle(screen, (0,255,0), map(lambda x: int(x), list(cen)), 5)
             for cen,col in zip(centroids, [(255,0,0),(0,255,0),(0,0,255),(255,255,0)]):
               if cen:
                 pygame.draw.circle(screen, col, map(lambda x: int(x), cen), 5)
