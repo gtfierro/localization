@@ -5,6 +5,7 @@ import pipe
 import Image
 import math
 from collections import deque
+from scipy import stats
 #import sympy
 #from sympy.geometry import Point
 from prun import IOMgr
@@ -67,6 +68,22 @@ class Floor(object):
     x_coord = sum(map(lambda x: x[0], pointlist)) / float(len(pointlist))
     y_coord = sum(map(lambda x: x[1], pointlist)) / float(len(pointlist))
     return (x_coord,y_coord)
+  
+  def _filter_n_std_devs(self, n, point_list):
+    """
+    [point_list] is a list of (distance, (x,y)) tuples. We compute the mean
+    of the distances, and then throw out all points that are more than [n]
+    standard deviations away from the mean. Returns a list of only the points
+    """
+    good_points = []
+    points = map(lambda x: x[1], point_list)
+    if len(points) < 2:
+      return points
+    scores = list(stats.zscore(map(lambda x: x[0], point_list)))
+    for i in xrange(len(scores)):
+      if abs(scores[i]) < n:
+        good_points.append(points[i])
+    return good_points
 
   def _avg_n_closest_points(self, n, pointlist):
     """
@@ -78,6 +95,8 @@ class Floor(object):
     n = max(len(pointlist),n)
     #filter out all null points
     pointlist = filter(lambda x: x != (0,0), pointlist)
+    if not pointlist:
+      return None
     point_dict = {}
     sum_dict = {}
     for p in pointlist:
@@ -86,8 +105,7 @@ class Floor(object):
       point_dict[p] = sorted(dist_to_points, key = lambda x: x[0]) # sort by distance
       sum_dict[p] = sum(map(lambda x: x[0], point_dict[p][:n-1]))
     min_sum_point = min(sum_dict, key=lambda x: sum_dict[x])
-    print point_dict[p][:n-1]
-    points = map(lambda x: x[1], point_dict[p][:n-1])
+    points = self._filter_n_std_devs(2, point_dict[p][:n-1])
     points.append(min_sum_point)
     return self._average_points(points)
 
@@ -167,7 +185,9 @@ def main(sample_period,graphics=False):
         mgr.poll(sample_period)
         centroids = []
         for mac in floor.macs:
-          centroids.append(floor.get_centroid(mac))
+          centroid = floor.get_centroid(mac)
+          if centroid:
+            centroids.append(centroid)
         if graphics:
             screen.blit(fl,(0,0))
             #for mac in floor.macs:
