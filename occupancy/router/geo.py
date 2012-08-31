@@ -76,6 +76,8 @@ class Floor(object):
     Sum the first n-1 points, take the list with the smallest sum.
     """
     n = max(len(pointlist),n)
+    #filter out all null points
+    pointlist = filter(lambda x: x != (0,0), pointlist)
     point_dict = {}
     sum_dict = {}
     for p in pointlist:
@@ -106,8 +108,7 @@ class Floor(object):
       weight = signal / sum_signals
       x_coord += ( self.routers[point[1]][0] * weight )
       y_coord += ( self.routers[point[1]][1] * weight )
-    if (x_coord,y_coord) != (0,0):
-      self.centroid_store[mac].append((x_coord,y_coord))
+    self.centroid_store[mac].append((x_coord,y_coord))
     return x_coord, y_coord
 
   def compute_centroid_lin(self, mac, data):
@@ -127,8 +128,7 @@ class Floor(object):
       weight = signal / sum_signals
       x_coord += ( self.routers[point[1]][0] * weight )
       y_coord += ( self.routers[point[1]][1] * weight )
-    if (x_coord,y_coord) != (0,0):
-      self.centroid_store[mac].append((x_coord,y_coord))
+    self.centroid_store[mac].append((x_coord,y_coord))
     return x_coord, y_coord
 
   def get_centroid(self, mac):
