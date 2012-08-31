@@ -206,7 +206,6 @@ class Collector:
             m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+) ', line)
             if m:
                 (time, db, bssid, mac) = m.groups()
-            # if the parsed source mac is in the list of known devices, we ping the ip address to elicit packets
         if mac in self.monitor_macs.keys():
             self.macs[ip][mac].append(int(db))
             self.count += 1
