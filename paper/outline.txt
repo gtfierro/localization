@@ -36,6 +36,4 @@
     -no people, turn off
   -run tests with different sample times, look at accuracy
 
-
-
 #Demonstration
