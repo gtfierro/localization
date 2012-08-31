@@ -185,9 +185,7 @@ def main(sample_period,graphics=False):
         mgr.poll(sample_period)
         centroids = []
         for mac in floor.macs:
-          centroid = floor.get_centroid(mac)
-          if centroid:
-            centroids.append(centroid)
+          centroids.append(floor.get_centroid(mac))
         if graphics:
             screen.blit(fl,(0,0))
             #for mac in floor.macs:
@@ -195,7 +193,8 @@ def main(sample_period,graphics=False):
             #  for cen in floor.centroid_store[mac]:
             #    pygame.draw.circle(screen, (0,255,0), map(lambda x: int(x), list(cen)), 5)
             for cen,col in zip(centroids, [(255,0,0),(0,255,0),(0,0,255),(255,255,0)]):
-              pygame.draw.circle(screen, col, map(lambda x: int(x), cen), 5)
+              if cen:
+                pygame.draw.circle(screen, col, map(lambda x: int(x), cen), 5)
             pygame.display.flip()
         c.clear_data()
       except KeyboardInterrupt:
