@@ -14,6 +14,26 @@
     -no training required, just minor setup
 
 #Explanation
-
+-Hardware infrasctructure
+  -small number of routers, 1 per 'actuation zone'
+    -running OpenWrt, easy to install, free
+  -required granularity is lessened by the fact we only have to worry about
+   localization in one direction (differs per floor plan, but rectangular model is great)
+  -running cross-compiled tcpdump with a couple minor modifications
+-Software
+  -central server to do all the bulky processing
+    -don't fill up kernel buffer on routers (64MB RAM, best case)
+    -talk through tcpdump flags 
+  -centroids
+    -k-nearest points
+    -conversion of dBM to linear scale
+-Actuation, Energy Savings,
+  -register the mac addresses of devices
+  -up to direct actuation of the lights.
+    -define threshold T of people in room
+    -more than T people in zone, lights full on
+    -less than T, more than0, lights half
+    -no people, turn off
+  -run tests with different sample times, look at accuracy
 
 #Demonstration
