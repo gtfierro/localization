@@ -1,5 +1,8 @@
 \section{Infrastructure}
-Our prototype infrastructure utilizes routers with omnidirectional MIMO antennas, each installed with OpenWRT -- a free Linux-based router firmware -- running a cross-compiled version of tcpdump. We were forced to deploy our own hardware due to the existing infrastructure being propietary - however, in a production environment, the same techniques could be applied to existing infrastructure.
+Our prototype infrastructure utilizes wireless access points with omnidirectional MIMO antennas running open-source Linux-based firmware (OpenWRT). In a production setting, our system would be implemented on the existing building access points. In fact, Cisco already offers a form of passive localization for rogue access points that is similar to the approach we use for occupancy counting.
+
+The campus network on which we chose to deploy was a 2.4Ghz wireless network supporting channels 1, 6, and 11. Each of the routers was set to \emph{monitor/promiscuous} mode, and was installed with tcpdump-4.2.1, an open-source packet analyzer. Because routers typically lack the processing power and memory for processing large amounts of data, we connected our routers to a central computer over a wired network. It is the job of this central computer to mitigate the collection of packet data from each of the routers, perform the necessary mathematical operations, and process the results. 
+
 \begin{figure}[htb]
 \begin{center}
 \includegraphics[width=\linewidth]{figs/floor4}
@@ -7,9 +10,7 @@ Our prototype infrastructure utilizes routers with omnidirectional MIMO antennas
 \caption{Location of routers (green) shown in relation to actuation zones (red).}
 \end{figure}
 
-The campus network on which we chose to deploy was a 2.4Ghz wireless network supporting channels 1, 6, and 11. Each of the routers was set to \emph{monitor/promiscuous} mode, and was installed with tcpdump-4.2.1, an open-source packet analyzer. Because routers typically lack the processing power and memory for processing large amounts of data, we connected our routers to a central computer. The manner of the connection between routers and central computer can be through a wired network or through direct Ethernet. It is the job of this central computer to mitigate the collection of packet data from each of the routers, perform the necessary mathematical operations, and process the results against a list of known MAC addresses. 
-
-The routers cycle through each of the three wireless channels using tcpdump-4.2.1 to capture packets in 1-second increments. Each packet is forwarded along with its 802.11 radiotap link-level header over SSH to the central computer, which parses out the RSSI and source MAC address. For recognized MAC addresses, for each time-step for a given sample rate, each RSSI is converted to a linear scale and the resulting RSSIs are averaged per router. We can then compute the possible location $(x_d,y_d)$ of the device possessing a given MAC address as the centroid of the known router coordinates $(x_i, y_i)$ weighted by the average detected signal strength at that router $r_i$:
+The routers cycle through each of the three wireless channels using tcpdump to capture packets in 1-second increments. Each packet is forwarded along with its 802.11 radiotap link-level header over SSH to FIFO the central computer, which parses out the RSSI and source MAC address. For recognized MAC addresses, for each time-step for a given sample rate, each RSSI is converted to a linear scale and the resulting RSSIs are averaged per router. We can then compute the possible location $(x_d,y_d)$ of the device possessing a given MAC address as the centroid of the known router coordinates $(x_i, y_i)$ weighted by the average detected signal strength at that router $r_i$:
 \begin{equation}
 \begin{split}
 x_d, y_d = \displaystyle\sum_{i} \frac{r_ix_i, r_iy_i}{\displaystyle\sum_i r_i}
