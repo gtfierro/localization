@@ -4,7 +4,7 @@ Our prototype infrastructure utilizes routers with omnidirectional MIMO antennas
 \begin{center}
 \includegraphics[width=\linewidth]{figs/floor4}
 \end{center}
-\caption{Location of routers (green) shown in relation to actuation zones (red). Note we do not need to place the routers in a convex hull of the entire floor in order to place a user within a zone.}
+\caption{Location of routers (green) shown in relation to actuation zones (red).}
 \end{figure}
 
 The campus network on which we chose to deploy was a 2.4Ghz wireless network supporting channels 1, 6, and 11. Each of the routers was set to \emph{monitor/promiscuous} mode, and was installed with tcpdump-4.2.1, an open-source packet analyzer. Because routers typically lack the processing power and memory for processing large amounts of data, we connected our routers to a central computer. The manner of the connection between routers and central computer can be through a wired network or through direct Ethernet. It is the job of this central computer to mitigate the collection of packet data from each of the routers, perform the necessary mathematical operations, and process the results against a list of known MAC addresses. 
@@ -30,23 +30,23 @@ In order to place an occupant within a space, it is necessary to have the router
 \caption{increased accuracy with increasingly large sample rates (20s, left; 10s, right). Even at times of low ambient signal noise, weighted centroid measurements can be inconsistent (green), a problem remedied by averaging the 5 most closely clustered centroids (red).}
 \end{figure}
 
-\begin{itemize}
-\item wireless localization tailored for buildings, passive is key. We reuse existing infrastructure (not entirely, actually, bec this is a prottype, but in real life we would get Cisco to do this on their routers)
-
-\item need to elicit data from user phones
-
-\item no need for training -- easily generalize
-
-\item how easy this is to map into our current acutation setup
-
-\item how is this better than existing solutions like RFID, motion sensors, laser gates, other wifi localization
-
-\item include picture of setup of floor on SDH floor plan. Locations of routers, location of device, guessed centroids, 'averaged' centroids, etc
-
-caption: increased accuracy with increasingly large sample rates. Even when measured at times of low ambient noise, measurements can be inconsistent (green/light grey), a problem remedied by averaging the 5 most closely clustered centroids (red/dark grey)
-
-\item mac address and IPs, get traffic, pull out iP, generate traffic
-
-\item how to detect stationary devices. We can do automatic detection, but if occupants abandon a device,  "detatched devices"
-
-\end{itemize}
+%\begin{itemize}
+%\item wireless localization tailored for buildings, passive is key. We reuse existing infrastructure (not entirely, actually, bec this is a prottype, but in real life we would get Cisco to do this on their routers)
+%
+%\item need to elicit data from user phones
+%
+%\item no need for training -- easily generalize
+%
+%\item how easy this is to map into our current acutation setup
+%
+%\item how is this better than existing solutions like RFID, motion sensors, laser gates, other wifi localization
+%
+%\item include picture of setup of floor on SDH floor plan. Locations of routers, location of device, guessed centroids, 'averaged' centroids, etc
+%
+%caption: increased accuracy with increasingly large sample rates. Even when measured at times of low ambient noise, measurements can be inconsistent (green/light grey), a problem remedied by averaging the 5 most closely clustered centroids (red/dark grey)
+%
+%\item mac address and IPs, get traffic, pull out iP, generate traffic
+%
+%\item how to detect stationary devices. We can do automatic detection, but if occupants abandon a device,  "detatched devices"
+%
+%\end{itemize}
