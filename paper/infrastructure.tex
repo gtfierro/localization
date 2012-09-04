@@ -7,7 +7,7 @@ The campus network on which we chose to deploy was a 2.4Ghz wireless network sup
 \begin{center}
 \includegraphics[width=.75\linewidth]{figs/floormap}
 \end{center}
-\caption{Location of routers (green) shown in relation to actuation zones (red).}
+\caption{Location of routers shown in relation to actuation zones.}
 \end{figure}
 
 The routers cycle through each of the three wireless channels using tcpdump to capture packets in 1-second increments. Each packet is forwarded along with its 802.11 radiotap link-level header over SSH to a FIFO on the central computer, which parses out the RSSI and source MAC address. For each MAC address, for each time-step, for a given sample rate, each RSSI is converted to a linear scale and the resulting RSSIs are averaged per router. We can then compute the possible location $(x_d,y_d)$ of the device possessing a given MAC address as the centroid of the known router coordinates $(x_i, y_i)$ weighted by the average detected signal strength at that router $r_i$:
@@ -28,7 +28,7 @@ This raises the issue of accounting for ``detached devices,'' devices left conne
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=.5\linewidth]{figs/samplesize}
+\includegraphics[width=.7\linewidth]{figs/samplesize}
 \end{center}
-\caption{increased accuracy with increasingly large sample rates (20s, left; 10s, right). Even at times of low ambient signal noise, weighted centroid measurements can be inconsistent (green), a problem remedied by averaging the 5 most closely clustered centroids (red). The star represents the actual device location.}
+\caption{Increased accuracy with increasingly large sample rates (20s, left; 10s, right). Even at times of low ambient signal noise, weighted centroid measurements can be inconsistent (black diamond), a problem remedied by averaging the 5 most closely clustered centroids (white circle). The star represents the actual device location.}
 \end{figure}
