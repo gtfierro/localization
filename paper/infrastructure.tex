@@ -4,7 +4,7 @@ Our infrastructure utilizes routers with omnidirectional MIMO antennas, each ins
 \begin{center}
 \includegraphics[width=.75\linewidth]{figs/floormap}
 \end{center}
-\caption{Location of routers (green) shown in relation to actuation zones (red).}
+\caption{Location of routers shown in relation to actuation zones.}
 \end{figure}
 
 The campus network on which we chose to deploy was a 2.4Ghz wireless network supporting channels 1, 6, and 11. Each of the routers was set to \emph{monitor/promiscuous} mode, and was installed with tcpdump-4.2.1, an open-source packet analyzer. Because routers typically lack the processing power and memory for processing large amounts of data, we connected our routers to a central computer. The manner of the connection between routers and central computer can be through a wired network or through direct Ethernet. It is the job of this central computer to mitigate the collection of packet data from each of the routers, perform the necessary mathematical operations, and process the results against a list of known MAC addresses. 
