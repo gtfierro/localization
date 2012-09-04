@@ -1,8 +1,8 @@
 \section{Infrastructure}
-Our prototype infrastructure utilizes routers with omnidirectional MIMO antennas, each installed with OpenWRT -- a free Linux-based router firmware -- running a cross-compiled version of tcpdump. We were forced to deploy our own hardware due to the existing infrastructure being propietary - however, in a production environment, the same techniques could be applied to existing infrastructure.
+Our infrastructure utilizes routers with omnidirectional MIMO antennas, each installed with OpenWRT, a free Linux-based router firmware.
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=\linewidth]{figs/floor4}
+\includegraphics[width=.75\linewidth]{figs/floormap}
 \end{center}
 \caption{Location of routers (green) shown in relation to actuation zones (red).}
 \end{figure}
@@ -25,28 +25,7 @@ In order to place an occupant within a space, it is necessary to have the router
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=.6\linewidth]{figs/samplesize}
+\includegraphics[width=.5\linewidth]{figs/samplesize}
 \end{center}
 \caption{increased accuracy with increasingly large sample rates (20s, left; 10s, right). Even at times of low ambient signal noise, weighted centroid measurements can be inconsistent (green), a problem remedied by averaging the 5 most closely clustered centroids (red). The star represents the actual device location.}
 \end{figure}
-
-%\begin{itemize}
-%\item wireless localization tailored for buildings, passive is key. We reuse existing infrastructure (not entirely, actually, bec this is a prottype, but in real life we would get Cisco to do this on their routers)
-%
-%\item need to elicit data from user phones
-%
-%\item no need for training -- easily generalize
-%
-%\item how easy this is to map into our current acutation setup
-%
-%\item how is this better than existing solutions like RFID, motion sensors, laser gates, other wifi localization
-%
-%\item include picture of setup of floor on SDH floor plan. Locations of routers, location of device, guessed centroids, 'averaged' centroids, etc
-%
-%caption: increased accuracy with increasingly large sample rates. Even when measured at times of low ambient noise, measurements can be inconsistent (green/light grey), a problem remedied by averaging the 5 most closely clustered centroids (red/dark grey)
-%
-%\item mac address and IPs, get traffic, pull out iP, generate traffic
-%
-%\item how to detect stationary devices. We can do automatic detection, but if occupants abandon a device,  "detatched devices"
-%
-%\end{itemize}
