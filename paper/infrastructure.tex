@@ -21,7 +21,7 @@ The passive nature of our localization infrastructure means that it requires lit
 
 This raises the issue of accounting for ``detached devices,'' devices left connected to the network that are not actively being used and can therefore be falsely registered as occupants. This can be ignored in the context of binary occupancy detection (``occupied'' versus ``not occupied''), but in applications requiring more exact counts, the problem of detached devices can be approached with analysis of the specific types of packets sent by the device in question. For example, if the device is sending DHCP authentication packets, we can assume the device may have been associated with the given network for awhile but not logged-in, suggesting the device is not currently being used. Analysis of the number of HTTP packets for a given device can indicate the type and activity level of the device: low-frequency laptop traffic might suggest a detached device, whereas high-frequency mobile phone traffic implies an active user.
 
-In order to place an occupant within a space, it is necessary to have the routers form a convex hull of said space. However, because of the low granularity of building actuation controls, fewer routers may be used to 
+In order to place an occupant within a space, it is necessary to have the routers form a convex hull of said space. Depending on the geometry of the space, fewer routers may be used to form a convex hull of lesser dimensionality that retains the domain of the zones of actuation. 
 
 \begin{figure}[htb]
 \begin{center}
