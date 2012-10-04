@@ -164,7 +164,8 @@ class Floor(object):
 def main(sample_period,graphics=False):
     mgr = IOMgr()
     c = pipe.Collector(mgr,sample_period,"128.32.156.64","128.32.156.67","128.32.156.131","128.32.156.45")
-    floor = Floor('floor4.png',c,'f8:0c:f3:1d:16:49')#,'f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
+    #floor = Floor('floor4.png',c,'f8:0c:f3:1d:16:49')#,'f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
+    floor = Floor('floor4.png',c,'f8:0c:f3:1c:ec:a2')#,'f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
     floor.add_router('128.32.156.131',(116,147))
     floor.add_router('128.32.156.64' ,(233,157))
     floor.add_router('128.32.156.67' ,(589,117))

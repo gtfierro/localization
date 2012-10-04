@@ -1,11 +1,11 @@
 \section{Infrastructure}
 Our prototype infrastructure utilizes wireless access points with omnidirectional MIMO antennas running open-source Linux-based firmware (OpenWRT). In a production setting, our system would be implemented on the existing building access points. In fact, Cisco already offers a form of passive localization for rogue access points that is similar to the approach we use for occupancy counting.
 
-The campus network on which we chose to deploy is a 2.4Ghz wireless network supporting channels 1, 6, and 11. Each of the routers was set to \emph{monitor/promiscuous} mode, and was installed with tcpdump-4.2.1, an open-source packet analyzer. Because routers typically lack the processing power and memory for processing large amounts of data, we connect our routers to a central computer over a wired network. It is the job of this central computer to mitigate the collection of packet data from each of the routers, perform the necessary mathematical operations, and process the results. 
+The campus network on which we chose to deploy is a 2.4Ghz wireless network supporting channels 1, 6, and 11. Each of the routers was set to \emph{monitor/promiscuous} mode, and was installed with an open-source packet analyzer. All routers communicate with a central computer, which mitigates the collection of and computations upon packet data from each of the routers and process the results. 
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=.9\linewidth]{figs/floormap}
+\includegraphics[width=.8\linewidth]{figs/floormap}
 \end{center}
 \caption{Location of routers shown in relation to actuation zones.}
 \label{fig:floormap}
@@ -17,7 +17,7 @@ The routers cycle through each of the three wireless channels using tcpdump to c
 x_d, y_d = \displaystyle\sum_{i} \frac{r_ix_i, r_iy_i}{\displaystyle\sum_i r_i}
 \end{split}
 \end{equation}
-The central computer stores the 10 most recent computed centroids, and the location of the device is computed as the average of the 5 most closely clustered centroids of the 10 cached centroids (using Manhattan Distance as a heuristic). In practice, this ``averaging of averages'' greatly reduces the influence of the deployment environment upon the consistency of the measured RSSIs. Abnormally strong or weak signals do not alter the accuracy of our estimations. There is an incurred lag of about 4 times the sample rate should the device move, but this delay is acceptable within the bounds of accurate occupancy detection. We are able to place devices within 1 cubicle of their actual location -- results of a 30 minute localization test are shown in Figure~\ref{fig:samplesize}. This level of precision is lower than that of trained localization techniques, but it is sufficient for counting people in HVAC or lighting zones which typically span 6-8 cubicles.
+The location of the device is computed as the average of the 5 most closely clustered centroids of the 10 most recent centroids (using Manhattan Distance as a heuristic). In practice, this ``averaging of averages'' greatly reduces the influence of the deployment environment upon the consistency of the measured RSSIs. Abnormally strong or weak signals do not alter the accuracy of our estimations. There is an incurred lag of about 4 times the sample rate should the device move, but this delay is acceptable within the bounds of accurate occupancy detection. We are able to place devices within 1 cubicle of their actual location -- results of a 30 minute localization test are shown in Figure~\ref{fig:samplesize}. This level of precision is lower than that of trained localization techniques, but it is sufficient for counting people in HVAC or lighting zones which typically span 6-8 cubicles.
 
 The passive nature of our localization infrastructure means that it requires little, if any, effort on behalf of the occupants to function. It is only necessary for a device to associate with an available network before we can start tracking it. We can obtain a session IP address for a device with a given MAC address by listening to all wireless traffic. In the absence of regular or sufficient traffic, the central computer can occasionally ping the device in question to either elicit the requisite wireless traffic or determine if the device has left the tracking area (which suggests the user has left). This approach differs from previous wireless localization work in that it does not \emph{require} the user to ensure he/she is creating enough traffic to be localized accurately, but rather unobtrusively generates the necessary data. 
 
@@ -29,7 +29,7 @@ This raises the issue of accounting for ``detached devices,'' devices left conne
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=.7\linewidth]{figs/samplesize}
+\includegraphics[width=.6\linewidth]{figs/samplesize}
 \end{center}
 \caption{Increased accuracy with increased sample rates (20s, left; 10s, right). Even at times of low ambient signal noise, weighted centroid measurements can be inconsistent (black diamond), a problem remedied by averaging the 5 most closely clustered centroids (white circle). The star represents the actual device location.}
 \label{fig:samplesize}
