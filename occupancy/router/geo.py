@@ -9,7 +9,7 @@ from scipy import stats
 #import sympy
 #from sympy.geometry import Point
 from prun import IOMgr
-from json-formatter import Formatter
+from json_formatter import Formatter
 
 
 class Floor(object):
@@ -31,11 +31,12 @@ class Floor(object):
     for mac in self.macs:
       self.centroid_store[mac] = deque(maxlen=10)
     self.collector = collector
-    self.json = Formatter("data.json", [ ( (0,0), (91,0), (91,249), (0, 240) ),
-                                         ( (91,0), (205, 0), (205, 240), (91, 240) ),
-                                         ( (205,0), (415, 0), (415, 240), (205, 240) ),
-                                         ( (415,0), (515, 0), (515, 240), (415, 240) ),
-                                         ( (515,0), (640, 0), (640, 240), (515, 240) )])
+    self.json = Formatter("data.json", [ ( (0, 240)  , (91,240),   (91,0),  (0,0),      ),
+                                         ( (91, 240) , (205, 240), (205, 0),(91,0),     ),
+                                         ( (205, 240), (415, 240), (415, 0),(205,0),    ),
+                                         ( (415, 240), (515, 240), (515, 0),(415,0),    ),
+                                         ( (515, 240), (640, 240), (640, 0),(515,0),    )])
+    print "here"
     self.json_tmp = []
     if isinstance(floor_image, str):
       self.floor_image = Image.open(floor_image)    
@@ -173,7 +174,7 @@ def main(sample_period,graphics=False):
     mgr = IOMgr()
     c = pipe.Collector(mgr,sample_period,"128.32.156.64","128.32.156.67","128.32.156.131","128.32.156.45")
     #floor = Floor('floor4.png',c,'f8:0c:f3:1d:16:49')#,'f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
-    floor = Floor('floor4.png',c,'f8:0c:f3:1c:ec:a2')#,'f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
+    floor = Floor('floor4.png',c,'f8:0c:f3:1c:ec:a2')
     floor.add_router('128.32.156.131',(116,147))
     floor.add_router('128.32.156.64' ,(233,157))
     floor.add_router('128.32.156.67' ,(589,117))
@@ -204,7 +205,9 @@ def main(sample_period,graphics=False):
             for cen,col in zip(centroids, [(255,0,0),(0,255,0),(0,0,255),(255,255,0)]):
               if cen:
                 pygame.draw.circle(screen, col, map(lambda x: int(x), cen), 5)
-            self.json.to_json(self.json_tmp)
+            floor.json.update(floor.json_tmp)
+            floor.json.to_json()
+            floor.json_tmp = []
             pygame.display.flip()
         c.clear_data()
       except KeyboardInterrupt:
