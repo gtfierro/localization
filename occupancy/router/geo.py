@@ -9,6 +9,7 @@ from scipy import stats
 #import sympy
 #from sympy.geometry import Point
 from prun import IOMgr
+from json-formatter import Formatter
 
 
 class Floor(object):
@@ -30,7 +31,12 @@ class Floor(object):
     for mac in self.macs:
       self.centroid_store[mac] = deque(maxlen=10)
     self.collector = collector
-
+    self.json = Formatter("data.json", [ ( (0,0), (91,0), (91,249), (0, 240) ),
+                                         ( (91,0), (205, 0), (205, 240), (91, 240) ),
+                                         ( (205,0), (415, 0), (415, 240), (205, 240) ),
+                                         ( (415,0), (515, 0), (515, 240), (415, 240) ),
+                                         ( (515,0), (640, 0), (640, 240), (515, 240) )])
+    self.json_tmp = []
     if isinstance(floor_image, str):
       self.floor_image = Image.open(floor_image)    
       self.floor_image_width = self.floor_image.size[0]
@@ -159,7 +165,9 @@ class Floor(object):
     # compute the centroid from the recent data
     self.compute_centroid_exp(mac,macdata)
     # use self.centroid_store historical data
-    return self._avg_n_closest_points(5, self.centroid_store[mac])
+    res = self._avg_n_closest_points(5, self.centroid_store[mac])
+    self.json_tmp.append( (res, mac) )
+    return res 
 
 def main(sample_period,graphics=False):
     mgr = IOMgr()
@@ -196,6 +204,7 @@ def main(sample_period,graphics=False):
             for cen,col in zip(centroids, [(255,0,0),(0,255,0),(0,0,255),(255,255,0)]):
               if cen:
                 pygame.draw.circle(screen, col, map(lambda x: int(x), cen), 5)
+            self.json.to_json(self.json_tmp)
             pygame.display.flip()
         c.clear_data()
       except KeyboardInterrupt:
