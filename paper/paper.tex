@@ -1,4 +1,4 @@
-\documentclass[10pt]{sensys-proc}
+\documentclass[10pt,abstract]{sensys-proc}
 %\usepackage{titling}
 %\setlength{\droptitle}{-10em}
 
@@ -11,26 +11,33 @@
 
 \numberofauthors{1}
 
+
 \author{
 \alignauthor Gabe Fierro, Omar Rehmane, Andrew Krioukov, David Culler\\
        \affaddr{Computer Science Department}\\
        \affaddr{University of California, Berkeley}\\
-       \affaddr{ gt.fierro@berkeley.edu, orehmane@berkeley.edu,\\krioukov@cs.berkeley.edu, culler@cs.berkeley.edu}
+       \email{ gt.fierro@berkeley.edu, orehmane@berkeley.edu,\\krioukov@cs.berkeley.edu, culler@cs.berkeley.edu}
 }
 
 \title{Demo Abstract: Zone-level Occupancy Counting with Existing Infrastructure} 
 
-\crdata{978-1-4503-1170-0}
+
+
 \conferenceinfo{Buildsys'12,} {November 6, 2012, Toronto, ON, Canada.}
-\CopyrightYear{2012}
+\crdata{978-1-4503-1170-0}
+%\CopyrightYear{2012}
 
 \begin{document}
 
 \maketitle
 
-\category{C.3}{Special-Purpose and Application-Based Systems}{Process Control Systems}
-\terms{Design, Experimentation, Management}
-\keywords{Occupancy Counting, Wireless Localization}
+\begin{abstract}
+Through accurate and dynamic occupancy detection, building actuation systems can fine tune the targets of their actions to better fit the patterns of usage in modern buildings. We outline a method for achieving this through existing wireless infrastructure and present a demonstration of its viability in a corporate environment.
+\end{abstract}
+
+%\category{C.3}{Special-Purpose and Application-Based Systems}{Process Control Systems}
+%\terms{Design, Experimentation, Management}
+%\keywords{Occupancy Counting, Wireless Localization}
 
 \input{intro}
 \input{infrastructure}
