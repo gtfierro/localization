@@ -31,7 +31,7 @@ class Floor(object):
     for mac in self.macs:
       self.centroid_store[mac] = deque(maxlen=10)
     self.collector = collector
-    self.json = Formatter("data.json", [ ( (0, 240)  , (91,240),   (91,0),  (0,0),      ),
+    self.json = Formatter("data.json", 600, 240, [ ( (0, 240)  , (91,240),   (91,0),  (0,0),      ),
                                          ( (91, 240) , (205, 240), (205, 0),(91,0),     ),
                                          ( (205, 240), (415, 240), (415, 0),(205,0),    ),
                                          ( (415, 240), (515, 240), (515, 0),(415,0),    ),
