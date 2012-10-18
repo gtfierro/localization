@@ -167,7 +167,10 @@ class Floor(object):
     self.compute_centroid_exp(mac,macdata)
     # use self.centroid_store historical data
     res = self._avg_n_closest_points(5, self.centroid_store[mac])
-    self.json_tmp.append( (res, mac) )
+    d['mac'] = mac
+    d['x'] = res[0]
+    d['y'] = res[1]
+    self.json_tmp.append(d)
     return res 
 
 def main(sample_period,graphics=False):
