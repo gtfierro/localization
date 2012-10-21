@@ -31,7 +31,7 @@ class Floor(object):
     for mac in self.macs:
       self.centroid_store[mac] = deque(maxlen=10)
     self.collector = collector
-    self.json = Formatter("data.json", [ ( (0, 240)  , (91,240),   (91,0),  (0,0),      ),
+    self.json = Formatter("data.json", 600, 240, [ ( (0, 240)  , (91,240),   (91,0),  (0,0),      ),
                                          ( (91, 240) , (205, 240), (205, 0),(91,0),     ),
                                          ( (205, 240), (415, 240), (415, 0),(205,0),    ),
                                          ( (415, 240), (515, 240), (515, 0),(415,0),    ),
@@ -167,7 +167,10 @@ class Floor(object):
     self.compute_centroid_exp(mac,macdata)
     # use self.centroid_store historical data
     res = self._avg_n_closest_points(5, self.centroid_store[mac])
-    self.json_tmp.append( (res, mac) )
+    d['mac'] = mac
+    d['x'] = res[0]
+    d['y'] = res[1]
+    self.json_tmp.append(d)
     return res 
 
 def main(sample_period,graphics=False):

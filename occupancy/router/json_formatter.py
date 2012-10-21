@@ -6,7 +6,7 @@ class Formatter(object):
     To be stored in an external file
     """
 
-    def __init__(self, filename, zones):
+    def __init__(self, filename, width, height, zones):
         """
         [filename]: of form "filename.json" is the string corresponding
                     to the name of the file we're storing the json in
@@ -14,6 +14,8 @@ class Formatter(object):
                  UL, UR, LR, LL corners of each zone (clockwise from top left)
         """
 
+        self.width = width
+        self.height = height
         self.filename = filename
         for zone in zones:
             if len(zone) != 4:
@@ -43,6 +45,8 @@ class Formatter(object):
             zone_list.append(list(zone))
         to_write['zones'] = zone_list
         to_write['data']  = self.data
+        to_write['width'] = self.width
+        to_write['height'] = self.height
         with open(self.filename, mode='w') as f:
             json.dump(to_write,f)
 
