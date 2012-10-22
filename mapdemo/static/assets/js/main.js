@@ -1,3 +1,5 @@
+var ROOT_DOMAIN = "http://128.32.156.60:8000";
+
 var Floor = {
 	'data' : [],
 	'update' : function(datalist){
@@ -48,7 +50,7 @@ var Floor = {
 		}
 	},
 	'fetch' : function(){
-		$.getJSON('http://128.32.156.60:8000/data', function(data){
+		$.getJSON(ROOT_DOMAIN+'/data', function(data){
 			Floor.update(data.data);
 		});
 	}
@@ -79,15 +81,16 @@ var Vis = {
 				.attr("cx", function (d) { return d.x;})
 				.attr("cy", function (d) { return d.y;})
 				.attr("fill", "#4d90fe")
-			.transition().duration(500)
-				.attr("r", "5px");
-		
+				.attr("r", "0px");
+
 		circles
-			.attr("cx", function (d) { return d.x;})
-			.attr("cy", function (d) { return d.y;});
+			.transition().duration(1000).ease("exp-in-out")
+				.attr("r", "5px")
+				.attr("cx", function (d) { return d.x;})
+				.attr("cy", function (d) { return d.y;});
 		
 		circles.exit()
-			.transition().duration(500)
+			.transition().duration(1000)
 				.attr("r", 0)
 				.remove();
 	},
@@ -115,7 +118,7 @@ Vis.svg = d3.select("#visual");
 //create zones for vis
 //Floor.generateZones(floordata.zones); //run this only once!!!!
 //Floor.update(floordata.data);//update periodically
-$.ajax({url:'http://128.32.156.60:8000/data', dataType: 'json', success:function(data){
+$.ajax({url:ROOT_DOMAIN+'/data', dataType: 'json', success:function(data){
 	Floor.generateZones(data.zones);
 	Floor.update(data.data);
 	setInterval( Floor.fetch, 5000);
