@@ -1,0 +1,122 @@
+var Floor = {
+	'data' : [],
+	'update' : function(datalist){
+		var zmaxlen = Floor.zones.length,
+			dmaxlen = datalist.length;
+		var i, zone;
+		for ( i = 0 ; i < zmaxlen; i++){
+			zone = Floor.zones[i];
+			zone.count = 0;
+		}
+		Floor.data = datalist;
+		for ( i = 0; i < dmaxlen; i++){
+			Floor.place(Floor.data[i]);
+		}
+		Vis.drawText();
+		Vis.drawDevice();
+	},
+	'zones' : [], //each zone should have keys {tl, tr, br, bl, width,height,x,y,devices}
+	'generateZones' : function(l){
+		var maxlen = l.length;
+		var i, obj, current;
+		for ( i = 0; i < maxlen; i++ ){
+			current = l[i];
+			obj = {};
+			obj.tl = {'x':current[0][0], 'y':current[0][1]};
+			obj.tr = {'x':current[1][0], 'y':current[1][1]};
+			obj.br = {'x':current[2][0], 'y':current[2][1]};
+			obj.bl = {'x':current[3][0], 'y':current[3][1]};
+			obj.width = obj.tr.x - obj.tl.x;
+			obj.height = obj.br.y - obj.tr.y;
+			obj.count = 0;
+			Floor.zones.push(obj);
+		}
+		//draw the zones on canvas
+		Vis.drawZones();
+		return Floor.zones;
+	},
+	'place' : function(c){
+		//puts a device into a a corresponding zone
+		var maxlen = Floor.zones.length;
+		var i, zone;
+		for ( i = 0; i < maxlen; i++){
+			zone = Floor.zones[i];
+			if ( c.x >= zone.tl.x && c.x <= zone.tr.x && c.y >= zone.tl.y && c.y <= zone.bl.y ){
+				zone.count++;
+				break;
+			}
+		}
+	},
+	'fetch' : function(){
+		$.getJSON('http://localhost:8000/data', function(data){
+			Floor.update(data.data);
+		});
+	}
+};
+
+var Vis = {
+	'drawText' : function(){
+		//draw counts in zones ( this will need to be consistently updated )
+		Vis.counts = Vis.svg.selectAll("text").data(Floor.zones);
+		Vis.counts.enter()
+			.append("text")
+				.text(function(d){return d.count;})
+				.attr("x", function(d){ return (d.tl.x+parseInt(d.width/2))+"px";})
+				.attr("y", function(d){ return (d.tl.y+parseInt(d.height/2))+"px";})
+				.attr("font-size", "25px")
+				.attr("font-family", "sans-serif")
+				.attr("fill", "#fff");
+		
+		//update existing ones
+		Vis.counts.text(function(d){return d.count;});
+	},
+	'drawDevice' : function(){
+		//draw circles
+		var circles = Vis.svg.selectAll("circle").data(Floor.data, function(d){ return d.mac; });
+		circles.enter()
+			.append("circle")
+				.attr("r", "0px")
+				.attr("cx", function (d) { return d.x;})
+				.attr("cy", function (d) { return d.y;})
+				.attr("fill", "#4d90fe")
+			.transition().duration(500)
+				.attr("r", "5px");
+		
+		circles.attr("cx", function (d) { return d.x;})
+			.attr("cy", function (d) { return d.y;});
+		
+		circles.exit()
+			.transition().duration(500)
+				.attr("r", 0)
+				.remove();
+	},
+	'drawZones' : function(){
+		//draw the zones
+		Vis.zones = Vis.svg.selectAll("rect").data(Floor.zones);
+		Vis.zones.enter()
+			.append("rect")
+				.attr("fill", "#ccc")
+				.attr("stroke", "rgba(255,255,255,0.5)")
+				.attr("stroke-width", "4")
+				.attr("width", "0px")
+				.attr("height", function(d){ return d.height+"px";})
+				.attr("x", "0px")
+				.attr("y", "0px")
+			.transition().duration(500)
+				.attr("width", function(d){ return d.width+"px";})
+				.attr("x", function(d){ return d.tl.x+"px";})
+				.attr("y", function(d){ return d.tl.y+"px";});
+	}
+};
+Vis.svg = d3.select("#visual");
+
+
+//create zones for vis
+Floor.generateZones(floordata.zones); //run this only once!!!!
+Floor.update(floordata.data);//update periodically
+/*$.getJSON('http://localhost:8000/data', function(data){
+	Floor.generateZones(data.zones);
+	Floor.update(data.data);
+	setInterval( Floor.fetch, 5000);
+});*/
+
