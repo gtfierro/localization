@@ -74,7 +74,7 @@ var Vis = {
 		//draw circles
 		var circles = Vis.svg.selectAll("circle").data(Floor.data, function(d){ return d.mac; });
 		circles.enter()
-			.append("circle")
+			.insert("circle")
 				.attr("r", "0px")
 				.attr("cx", function (d) { return d.x;})
 				.attr("cy", function (d) { return d.y;})
@@ -82,7 +82,8 @@ var Vis = {
 			.transition().duration(500)
 				.attr("r", "5px");
 		
-		circles.attr("cx", function (d) { return d.x;})
+		circles
+			.attr("cx", function (d) { return d.x;})
 			.attr("cy", function (d) { return d.y;});
 		
 		circles.exit()
@@ -112,11 +113,11 @@ Vis.svg = d3.select("#visual");
 
 
 //create zones for vis
-Floor.generateZones(floordata.zones); //run this only once!!!!
-Floor.update(floordata.data);//update periodically
-/*$.getJSON('http://localhost:8000/data', function(data){
+//Floor.generateZones(floordata.zones); //run this only once!!!!
+//Floor.update(floordata.data);//update periodically
+$.ajax({url:'http://localhost:8000/data', dataType: 'json', success:function(data){
 	Floor.generateZones(data.zones);
 	Floor.update(data.data);
 	setInterval( Floor.fetch, 5000);
-});*/
+}});
 
