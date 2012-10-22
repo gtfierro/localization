@@ -48,7 +48,7 @@ var Floor = {
 		}
 	},
 	'fetch' : function(){
-		$.getJSON('http://localhost:8000/data', function(data){
+		$.getJSON('http://128.32.156.60:8000/data', function(data){
 			Floor.update(data.data);
 		});
 	}
@@ -115,7 +115,7 @@ Vis.svg = d3.select("#visual");
 //create zones for vis
 //Floor.generateZones(floordata.zones); //run this only once!!!!
 //Floor.update(floordata.data);//update periodically
-$.ajax({url:'http://localhost:8000/data', dataType: 'json', success:function(data){
+$.ajax({url:'http://128.32.156.60:8000/data', dataType: 'json', success:function(data){
 	Floor.generateZones(data.zones);
 	Floor.update(data.data);
 	setInterval( Floor.fetch, 5000);
