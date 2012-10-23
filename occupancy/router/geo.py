@@ -10,6 +10,7 @@ from scipy import stats
 #from sympy.geometry import Point
 from prun import IOMgr
 from json_formatter import Formatter
+import argparse
 
 
 class Floor(object):
@@ -174,16 +175,37 @@ class Floor(object):
     self.json_tmp.append(d)
     return res 
 
-def main(sample_period,graphics=False):
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s','--sample-period',type=int,default=10,help='seconds to sample in between updating')
+    parser.add_argument('-g','--enable-graphics',type=bool,default=False,help='true if you want to display pygame graphics')
+    parser.add_argument('config_file',type=str,help='''specify the config file containing the routers. Format:\nrouter-mac router-ip x y''')
+    args = parser.parse_args()
+
+    router_ips = []
+    bssids = []
+    coords = []
     mgr = IOMgr()
-    c = pipe.Collector(mgr,sample_period,"128.32.156.64","128.32.156.67","128.32.156.131","128.32.156.45")
-    #floor = Floor('floor4.png',c,'f8:0c:f3:1d:16:49')#,'f8:0c:f3:1c:ec:a2','04:46:65:f8:1a:1d')
+    with open(args.config_file,'r') as f:
+        #loop through config file
+        for line in f.readlines():
+            if not line or line.startswith('#'):
+                continue
+            if line.startswith('router'):
+                router_ips.append(line.split()[2]) 
+                coords.append(map(int,line.split()[-2:]))
+            elif line.startswith('bssid'):
+                bssids.append(line.split()[0])
+    # create Collector
+    print coords
+    c = pipe.Collector(mgr, args.sample_period, bssids, router_ips)
+    # create Floor
     floor = Floor('floor4.png',c,'f8:0c:f3:1c:ec:a2')
-    floor.add_router('128.32.156.131',(116,147))
-    floor.add_router('128.32.156.64' ,(233,157))
-    floor.add_router('128.32.156.67' ,(589,117))
-    floor.add_router('128.32.156.45' ,(466,132))
-    if graphics:
+    # add routers
+    for router,coord in zip(router_ips,coords):
+        floor.add_router(router, coord)
+
+    if args.enable_graphics:
         print "#" * 24
         print "#Using Pygame graphics!#"
         print "#" * 24
@@ -195,12 +217,12 @@ def main(sample_period,graphics=False):
         screen.blit(fl,(0,0))
     while True:
       try:
-        time.sleep(sample_period)
-        mgr.poll(sample_period)
+        time.sleep(args.sample_period)
+        mgr.poll(args.sample_period)
         centroids = []
         for mac in floor.macs:
           centroids.append(floor.get_centroid(mac))
-        if graphics:
+        if args.enable_graphics:
             screen.blit(fl,(0,0))
             for mac in floor.macs:
               print floor.centroid_store[mac]
@@ -219,4 +241,4 @@ def main(sample_period,graphics=False):
         sys.exit(0)
 
 if __name__=="__main__":
-    main(int(sys.argv[1]) if len(sys.argv) > 1 else 10, int(sys.argv[2] if len(sys.argv) > 2 else 0))
+    main()
