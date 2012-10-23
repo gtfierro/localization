@@ -1,0 +1,32 @@
+### README ###
+To set up a computer to run the localization piece, do the following
+
+
+1. Run the redis server with the default settings
+    
+    redis-server
+
+
+2. Run the flask web-server to see Anthony's pretty interface (and to see where everything is)
+
+    (from localization/mapdemo)
+
+    python app.py
+
+3. Prepare your configuration file for your network. This is a text file containing two types of entries.
+    
+    bssid <mac-address>   #identifies the BSSID for one of the routers on your network. This assists in filtering
+        -- or --
+    router <mac-address> <ip-address> <x-coord> <y-coord> #mac address, ip address and x-coord,y-coord for a router
+                                                          #with relation to the floor map
+
+4. Run the localization script!
+
+    python geo.py <path-to-configuration-file>
+
+
+5. Start adding client mac addresses via some redis client (details coming soon), or by waiting for Andrew's arp-thing
+   to take care of this automagically
+
+
+6. Visit localhost:8000 to see where everything is
