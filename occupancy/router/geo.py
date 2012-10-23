@@ -32,10 +32,10 @@ class Floor(object):
       self.centroid_store[mac] = deque(maxlen=10)
     self.collector = collector
     self.json = Formatter("data.json", 600, 240, [ ( (0,0), (91,0), (91,240), (0, 240),      ),
-                                         ( (91,0),(205, 0),(205,240),(91, 240),     ),
-                                         ( (205,0),(415,0),(415,240),(205, 240),    ),
-                                         ( (415,0),(515,0),(515,240),(415, 240),    ),
-                                         ( (515,0),(640,0),(640,240),(515, 240),    )])
+                                                     ( (91,0),(205, 0),(205,240),(91, 240),     ),
+                                                     ( (205,0),(415,0),(415,240),(205, 240),    ),
+                                                     ( (415,0),(515,0),(515,240),(415, 240),    ),
+                                                     ( (515,0),(600,0),(600,240),(515, 240),    )])
     print "here"
     self.json_tmp = []
     if isinstance(floor_image, str):
@@ -167,9 +167,10 @@ class Floor(object):
     self.compute_centroid_exp(mac,macdata)
     # use self.centroid_store historical data
     res = self._avg_n_closest_points(5, self.centroid_store[mac])
+    d={}
     d['mac'] = mac
-    d['x'] = res[0]
-    d['y'] = res[1]
+    d['x'] = res[0] if res else 0
+    d['y'] = res[1] if res else 0
     self.json_tmp.append(d)
     return res 
 
