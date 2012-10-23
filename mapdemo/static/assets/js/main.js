@@ -1,4 +1,5 @@
-var ROOT_DOMAIN = "http://128.32.156.60:8000";
+//var ROOT_DOMAIN = "http://128.32.156.60:8000";
+var ROOT_DOMAIN = "http://localhost:8000";
 
 var Floor = {
 	'data' : [],
@@ -84,7 +85,7 @@ var Vis = {
 				.attr("r", "0px");
 
 		circles
-			.transition().duration(1000).ease("exp-in-out")
+			.transition().duration(5000).ease("exp-in-out")
 				.attr("r", "5px")
 				.attr("cx", function (d) { return d.x;})
 				.attr("cy", function (d) { return d.y;});
@@ -106,6 +107,7 @@ var Vis = {
 				.attr("height", function(d){ return d.height+"px";})
 				.attr("x", "0px")
 				.attr("y", "0px")
+				.attr("opacity", 0.8)
 			.transition().duration(500)
 				.attr("width", function(d){ return d.width+"px";})
 				.attr("x", function(d){ return d.tl.x+"px";})
@@ -113,6 +115,13 @@ var Vis = {
 	}
 };
 Vis.svg = d3.select("#visual");
+Vis.svg
+	.append("image")
+		.attr("xlink:href", ROOT_DOMAIN+"/static/assets/img/floor4.png")
+		.attr("x", "0px")
+		.attr("y", "0px")
+		.attr("width", "600px")
+		.attr("height", "240px");
 
 
 //create zones for vis
