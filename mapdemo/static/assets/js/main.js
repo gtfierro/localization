@@ -1,5 +1,5 @@
-//var ROOT_DOMAIN = "http://128.32.156.60:8000";
-var ROOT_DOMAIN = "http://localhost:8000";
+var ROOT_DOMAIN = "http://128.32.156.60:8000";
+//var ROOT_DOMAIN = "http://localhost:8000";
 
 var Floor = {
 	'data' : [],
