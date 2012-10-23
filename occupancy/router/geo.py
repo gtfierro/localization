@@ -178,7 +178,7 @@ class Floor(object):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s','--sample-period',type=int,default=10,help='seconds to sample in between updating')
-    parser.add_argument('-g','--enable-graphics',type=bool,default=False,help='true if you want to display pygame graphics')
+    parser.add_argument('-g','--enable-graphics',action='store_true',default=False,help='true if you want to display pygame graphics')
     parser.add_argument('config_file',type=str,help='''specify the config file containing the routers. Format:\nrouter-mac router-ip x y''')
     args = parser.parse_args()
 
@@ -197,7 +197,6 @@ def main():
             elif line.startswith('bssid'):
                 bssids.append(line.split()[0])
     # create Collector
-    print coords
     c = pipe.Collector(mgr, args.sample_period, bssids, router_ips)
     # create Floor
     floor = Floor('floor4.png',c,'f8:0c:f3:1c:ec:a2')
