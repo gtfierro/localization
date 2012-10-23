@@ -6,6 +6,7 @@ import shlex
 import numpy
 import pickle
 import time
+import redis
 from collections import defaultdict
 from pprint import pprint
 from prun import CmdRun, IOMgr
@@ -29,6 +30,7 @@ class Collector:
         self.pings = {}     #key = ping-ip, value = ping proc
         self.records = {}
 
+        self.r = redis.StrictRedis()
         self.bssids = bssids
 
         self.count = 0
@@ -193,7 +195,7 @@ class Collector:
             m = re.search('^(\d+\.\d+).* (-?\d+)dB signal(?!.*(?:QoS)).*BSSID:([0-9a-f:]+).*SA:([0-9a-f:]+) ', line)
             if m:
                 (time, db, bssid, mac) = m.groups()
-        if bssid in self.bssids:
+        if mac in self.r.smembers('macs'):
             self.macs[ip][mac].append(int(db))
             self.count += 1
 
