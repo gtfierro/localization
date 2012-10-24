@@ -3,7 +3,7 @@ import re
 import redis
 import os
 
-os.system('ssh root@10.10.0.1 "cat /proc/net/arp" > /tmp/arp')
+os.system('scp root@10.10.0.1:/tmp/dhcp.leases /tmp/dhcp')
 
 r = redis.Redis()
 with open('/tmp/arp') as f:
