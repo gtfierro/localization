@@ -4,10 +4,10 @@ import time
 import pipe
 import Image
 import math
+import redis
 from collections import deque
+from collections import defaultdict
 from scipy import stats
-#import sympy
-#from sympy.geometry import Point
 from prun import IOMgr
 from json_formatter import Formatter
 import argparse
@@ -19,7 +19,7 @@ class Floor(object):
   and provide facilities for performing operations using the router measurements
   """
 
-  def __init__(self, floor_image, collector,*macs):
+  def __init__(self, floor_image, collector):
     """
     [floor_image] will be either a file name or a PIL image. All coordinates for internal structures of this
     floor will be relative to the image dimensions. Upper left corner is (0,0).
@@ -27,11 +27,9 @@ class Floor(object):
     [macs] is a list of mac address we are tracking
     """
     self.routers = {}
-    self.macs = list(macs)
-    self.centroid_store = {}  #key = mac, value = deque(maxlen=10)
-    for mac in self.macs:
-      self.centroid_store[mac] = deque(maxlen=10)
+    self.centroid_store = defaultdict(lambda : deque(maxlen=10))
     self.collector = collector
+    self.r = redis.StrictRedis() 
     self.json = Formatter("data.json", 600, 240, [ ( (0,0), (91,0), (91,240), (0, 240),      ),
                                                      ( (91,0),(205, 0),(205,240),(91, 240),     ),
                                                      ( (205,0),(415,0),(415,240),(205, 240),    ),
@@ -47,7 +45,10 @@ class Floor(object):
       self.floor_image = floor_image
     else:
       raise TypeError('floor_image must be PIL image or filename string')
-
+    
+  @property
+  def macs(self):
+    return self.r.smembers('macs')
 
   def add_router(self, server, pos):
     """
@@ -199,7 +200,7 @@ def main():
     # create Collector
     c = pipe.Collector(mgr, args.sample_period, bssids, router_ips)
     # create Floor
-    floor = Floor('floor4.png',c,'f8:0c:f3:1c:ec:a2')
+    floor = Floor('floor4.png',c)
     # add routers
     for router,coord in zip(router_ips,coords):
         floor.add_router(router, coord)
