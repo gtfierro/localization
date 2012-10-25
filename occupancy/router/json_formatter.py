@@ -36,6 +36,7 @@ class Formatter(object):
         receives a dict [data] mapping device ip addresses to their coordinates
         """
         if not data: return
+        self.data = {}
         self.data = data
 
     def to_json(self):
