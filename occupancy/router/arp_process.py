@@ -1,23 +1,31 @@
 import sys
 import re
+import time
 import redis
 import os
 
-os.system('scp root@10.10.0.1:/tmp/dhcp.leases /tmp/dhcp')
+def is_reserved_ip(ip):
+  # 10.10.0.* is reserved
+  return ip.startswith('10.10.0.')
 
 r = redis.Redis()
-with open('/tmp/arp') as f:
-  for l in f.readlines():
-    parts = re.split('\s{3,}', l.strip())
-    if len(parts) != 6:
-      print "Error parsing:", l, parts
-    else:
-      (ip, hw_type, flags, mac, mask, dev) = parts
-      if dev == 'br-lan':
-        print ip, mac
-        r.sadd('macs', mac)
-        r.hset('ipmac', ip, mac)
+r.delete('macs')
+r.delete('ipmac')
 
-print r.smembers('macs')
-print r.hgetall('ipmac')
+while True:
+  os.system('scp root@10.10.0.1:/tmp/dhcp.leases /tmp/dhcp')
 
+  with open('/tmp/dhcp') as f:
+    for l in f.readlines():
+      parts = l.split()
+      if len(parts) > 3:
+        (ts, mac, ip) = parts[0:3]
+        if not is_reserved_ip(ip):
+          print ip, mac
+          r.sadd('macs', mac)
+          r.hset('ipmac', ip, mac)
+
+  print r.smembers('macs')
+  print r.hgetall('ipmac')
+
+  time.sleep(1)
