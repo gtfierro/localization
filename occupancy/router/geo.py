@@ -168,7 +168,7 @@ class Floor(object):
     self.compute_centroid_exp(mac,macdata)
     # use self.centroid_store historical data
     res = self._avg_n_closest_points(5, self.centroid_store[mac])
-    if res and mac not in self.json_tmp:
+    if res and mac not in [t['mac'] for t in self.json_tmp]:
         d={}
         d['mac'] = mac
         d['x'] = res[0]
