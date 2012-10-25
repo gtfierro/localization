@@ -54,7 +54,7 @@ Then, we want to disable the firewall so we can use SSH:
 
 ```
 /etc/init.d/firewall stop
-/etc/init.d/firewall start
+/etc/init.d/firewall disable
 reboot
 ```
 
