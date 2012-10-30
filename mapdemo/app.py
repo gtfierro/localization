@@ -6,6 +6,10 @@ app = Flask(__name__)
 def home():
     return render_template('base.html')
 
+@app.route("/android")
+def test():
+    return render_template('and_base.html')
+
 @app.route("/data")
 def getdata():
     try:
