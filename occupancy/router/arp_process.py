@@ -24,6 +24,7 @@ while True:
           print ip, mac
           r.sadd('macs', mac)
           r.hset('ipmac', ip, mac)
+          r.hset('macip', mac, ip)
 
   print r.smembers('macs')
   print r.hgetall('ipmac')
