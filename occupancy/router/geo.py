@@ -229,6 +229,8 @@ def main():
               print mac
               print floor.get_centroid(mac)
               centroids.append(floor.get_centroid(mac))
+          else:
+              self.r.hdel(mac)
         print '-'*20
         if args.enable_graphics:
             screen.blit(fl,(0,0))
