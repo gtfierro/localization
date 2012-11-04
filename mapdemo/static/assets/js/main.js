@@ -1,7 +1,6 @@
 //var ROOT_DOMAIN = "http://128.32.130.216:8000";
 
-//var ROOT_DOMAIN = "http://136.152.38.210:8000";
-var ROOT_DOMAIN = "http://10.10.6.224/:8000";
+var ROOT_DOMAIN = "http://localhost:8000";
 
 var Floor = {
 	'data' : [],
@@ -62,66 +61,57 @@ var Floor = {
 var Vis = {
 	'drawText' : function(){
 		//draw counts in zones ( this will need to be consistently updated )
-		Vis.counts = Vis.svg.selectAll("text").data(Floor.zones);
+		Vis.counts = Vis.svg.selectAll(".txt").data(Floor.zones);
 		Vis.counts.enter()
-			.append("text")
+			.append("div")
+				.attr("class", "txt")
 				.text(function(d){return d.count;})
-				.attr("x", function(d){ return (d.tl.x+parseInt(d.width/2))+"px";})
-				.attr("y", function(d){ return (d.tl.y+parseInt(d.height/2))+"px";})
-				.attr("font-size", "25px")
-				.attr("font-family", "sans-serif")
-				.attr("fill", "#fff");
+				.style("left", function(d){ return (d.tl.x+parseInt(d.width/2))+"px";})
+				.style("top", function(d){ return (d.tl.y+parseInt(d.height/2))+"px";});
 		
 		//update existing ones
 		Vis.counts.text(function(d){return d.count;});
 	},
 	'drawDevice' : function(){
 		//draw circles
-		var circles = Vis.svg.selectAll("circle").data(Floor.data, function(d){ return d.mac; });
+		var circles = Vis.svg.selectAll(".ball").data(Floor.data, function(d){ return d.mac; });
 		circles.enter()
-			.insert("circle")
-				.attr("r", "0px")
-				.attr("cx", function (d) { return d.x;})
-				.attr("cy", function (d) { return d.y;})
-				.attr("fill", "#4d90fe")
-				.attr("r", "0px");
+			.insert("div")
+				.attr("class", "ball")
+				.style("top", function (d) { return d.y+"px";})
+				.style("left", function (d) { return d.x+"px";});
 
 		circles
-			.transition().duration(5000).ease("exp-in-out")
-				.attr("r", "5px")
-				.attr("cx", function (d) { return d.x;})
-				.attr("cy", function (d) { return d.y;});
+			.transition().duration(2000)
+				.style("top", function (d) { return d.y+"px";})
+				.style("left", function (d) { return d.x+"px";});
 		
 		circles.exit()
 			.transition().duration(1000)
-				.attr("r", 0)
 				.remove();
 	},
 	'drawZones' : function(){
 		//draw the zones
-		Vis.zones = Vis.svg.selectAll("rect").data(Floor.zones);
+		Vis.zones = Vis.svg.selectAll(".rec").data(Floor.zones);
 		Vis.zones.enter()
-			.append("rect")
-				.attr("fill", "#ccc")
-				.attr("stroke", "rgba(255,255,255,0.5)")
-				.attr("stroke-width", "4")
-				.attr("width", "0px")
-				.attr("height", function(d){ return d.height+"px";})
-				.attr("x", "0px")
-				.attr("y", "0px")
-				.attr("opacity", 0.8)
+			.append("div")
+				.attr("class", "rec")
+				.style("width", "0px")
+				.style("height", function(d){ return parseFloat(d.height-4)+"px";})
+				.style("left", "0px")
+				.style("top", "0px")
 			.transition().duration(500)
-				.attr("width", function(d){ return d.width+"px";})
-				.attr("x", function(d){ return d.tl.x+"px";})
-				.attr("y", function(d){ return d.tl.y+"px";});
+				.style("width", function(d){ return parseFloat(d.width-4)+"px";})
+				.style("left", function(d){ return d.tl.x+"px";})
+				.style("top", function(d){ return d.tl.y+"px";});
 	}
 };
 Vis.svg = d3.select("#visual");
 Vis.svg
-	.append("image")
-		.attr("xlink:href", ROOT_DOMAIN+"/static/assets/img/floor4.png")
-		.attr("x", "0px")
-		.attr("y", "0px")
+	.append("img")
+		.attr("src", ROOT_DOMAIN+"/static/assets/img/floor4.png")
+		.attr("top", "0px")
+		.attr("left", "0px")
 		.attr("width", "600px")
 		.attr("height", "240px");
 

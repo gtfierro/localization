@@ -59,3 +59,20 @@ reboot
 ```
 
 Then you should be good to go!
+
+
+## Redis Store
+
+Brief rundown of what we have in the redis db.
+
+### Sets
+
+`macs`: list of all mac addresses we are attempting to localize. Populated by [arp_process.py](https://github.com/gtfierro/localization/blob/master/occupancy/router/arp_process.py)
+
+### Hashes
+
+`macip`: hash of key: mac address, value: ip address. Items are never deleted from this hash
+
+`ipmac`: hash of key: ip address, value: mac address. Items are never deleted from this hash
+
+`<mac_address>`: hash of key: mac address, value: json string with keys of ['x','y','ip']. At each timestep, the hash from mac address to json-string only exists if we received data (packets) from that mac address. If a previously seen mac address does not have any data for a given timestep, we remove the hash for that address.
