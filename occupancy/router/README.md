@@ -59,3 +59,20 @@ reboot
 ```
 
 Then you should be good to go!
+
+
+## Redis Store
+
+Brief rundown of what we have in the redis db.
+
+### Sets
+
+`macs`: list of all mac addresses we are attempting to localize. Populated by [arp_process.py](https://github.com/gtfierro/localization/blob/master/occupancy/router/arp_process.py)
+
+### Hashes
+
+`macip`: hash of key: mac address, value: ip address
+
+`ipmac`: hash of key: ip address, value: mac address
+
+`<mac_address>`: hash of key: mac address, value: json string with keys of ['x','y','ip'].
