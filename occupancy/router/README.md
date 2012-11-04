@@ -71,8 +71,8 @@ Brief rundown of what we have in the redis db.
 
 ### Hashes
 
-`macip`: hash of key: mac address, value: ip address
+`macip`: hash of key: mac address, value: ip address. Items are never deleted from this hash
 
-`ipmac`: hash of key: ip address, value: mac address
+`ipmac`: hash of key: ip address, value: mac address. Items are never deleted from this hash
 
-`<mac_address>`: hash of key: mac address, value: json string with keys of ['x','y','ip'].
+`<mac_address>`: hash of key: mac address, value: json string with keys of ['x','y','ip']. At each timestep, the hash from mac address to json-string only exists if we received data (packets) from that mac address. If a previously seen mac address does not have any data for a given timestep, we remove the hash for that address.
