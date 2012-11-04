@@ -177,7 +177,7 @@ class Floor(object):
         d['y'] = res[1]
         d['ip'] = self.r.hget('macip', mac)
         self.json_tmp.append(d)
-        self.r.hset(mac, d)
+        self.r.hset('client_location',mac, d)
     return res 
 
 def main():
