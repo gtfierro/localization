@@ -30,12 +30,6 @@ class Floor(object):
     self.centroid_store = defaultdict(lambda : deque(maxlen=10))
     self.collector = collector
     self.r = redis.StrictRedis() 
-    self.json = Formatter("data.json", 600, 240, [ ( (0,0), (91,0), (91,240), (0, 240),      ),
-                                                     ( (91,0),(205, 0),(205,240),(91, 240),     ),
-                                                     ( (205,0),(415,0),(415,240),(205, 240),    ),
-                                                     ( (415,0),(515,0),(515,240),(415, 240),    ),
-                                                     ( (515,0),(600,0),(600,240),(515, 240),    )])
-    self.json_tmp = []
     if isinstance(floor_image, str):
       self.floor_image = Image.open(floor_image)    
       self.floor_image_width = self.floor_image.size[0]
@@ -170,13 +164,12 @@ class Floor(object):
     self.compute_centroid_exp(mac,macdata)
     # use self.centroid_store historical data
     res = self._avg_n_closest_points(5, self.centroid_store[mac])
-    if res and mac not in [t['mac'] for t in self.json_tmp]:
+    if res:
         d={}
         d['mac'] = mac
         d['x'] = res[0]
         d['y'] = res[1]
         d['ip'] = self.r.hget('macip', mac)
-        self.json_tmp.append(d)
         self.r.hset('client_location',mac, d)
     return res 
 

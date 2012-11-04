@@ -1,0 +1,13 @@
+PIN      | MAC               | Radio  | Name (IRIS)
+--------------------------------------------------
+32059427 | 00:24:a5:f5:4f:b6 | single | LINUXWZR
+11612414 | 00:24:a5:f5:50:7a | single | WZR-LINUX2
+14181627 | 4c:36:76:c4:74:13 | double | WZR-LINUX
+99583200 | 00:24:a5:f5:50:99 | single | LINUX-WZR3
+93505451 | 10:6f:3f:0e:72:82 | double | LINUXWZR_GABE1
+18599725 | 10:6f:3f:0e:f1:62 | double | LINUXWZR_GABE2
+24068987 | 10:6f:3f:0e:f2:54 | double | LINUXWZR_GABE3
+56226560 | 10:6f:3f:0c:07:2c | double | LINUXWZR_GABE4
+12400546 | 10:6f:3f:0e:f2:62 | double | LINUXWZR_GABE5
+36859139 | 10:6f:3f:0e:f2:fc | double | LINUXWZR_GABE6 **master router**
+72700327 | 10:6f:3f:0e:72:82 | double | N/A
