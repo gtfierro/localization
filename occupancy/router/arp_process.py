@@ -11,6 +11,7 @@ def is_reserved_ip(ip):
 r = redis.Redis()
 r.delete('macs')
 r.delete('ipmac')
+r.delete('macip')
 
 while True:
   os.system('scp root@10.10.0.1:/tmp/dhcp.leases /tmp/dhcp')
