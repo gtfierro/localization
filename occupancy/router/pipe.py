@@ -186,7 +186,6 @@ class Collector:
         Parses line, and if valid, store the signal with the appropriate router and mac address
         """
         line = line.strip()
-        #print line
         bssid = mac = ipaddr = ''
         m = re.search('^(\d+\.\d+).* (-?\d+)dB signal .* TA:([0-9a-f:]+).* Request-To-Send',line)
         if m:
@@ -198,41 +197,3 @@ class Collector:
         if mac in self.r.smembers('macs'):
             self.macs[ip][mac].append(int(db))
             self.count += 1
-
-def main(sample_period, graphics=False):
-    mgr = IOMgr()
-    c = Collector(mgr,sample_period,"128.32.156.64","128.32.156.67","128.32.156.131","128.32.156.45")
-    if graphics:
-        import matplotlib
-        matplotlib.use('TkAgg')
-        import matplotlib.pyplot as plt
-        plt.ion()
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        timestamp = 0
-        plot_data = {}
-        for r in c.macs.keys():
-            plot_data[r] = ([], [])
-    while True:
-        try:
-            time.sleep(sample_period)
-            mgr.poll(sample_period)
-            #c.get_data_normalize_to_min()
-            data = c.get_data()
-            if graphics:
-                timestamp += sample_period
-                for (router, style) in zip(data, ['r-','b-','g-','k-']):
-                    plot_data[router][0].append(len(data[router]))
-                    plot_data[router][1].append(timestamp)
-                    ax.plot(plot_data[router][1], plot_data[router][0],style)
-                plt.draw()
-            print [(router, len(data[router])) for router in data]
-            print data,'\n'
-            pickle.dump(c.records,open('macs.db','wb'))
-            c.clear_data()
-        except KeyboardInterrupt:
-            c.kill()
-            sys.exit(0)
-
-if __name__=="__main__":
-    main(int(sys.argv[1]) if len(sys.argv) > 1 else 10, int(sys.argv[2]) if len(sys.argv) > 2 else 0)
