@@ -164,6 +164,8 @@ class Floor(object):
     # get the most recent data for the given mac address
     alldata = self.collector.get_data_normalize_to_min()
     macdata = self.collector.get_data_for_mac(mac, True, datadict=alldata)
+    if not macdata:
+        return None
     # compute the centroid from the recent data
     self.compute_centroid_exp(mac,macdata)
     # use self.centroid_store historical data
@@ -175,6 +177,7 @@ class Floor(object):
         d['y'] = res[1]
         d['ip'] = self.r.hget('macip', mac)
         self.json_tmp.append(d)
+        self.r.hset(mac, d)
     return res 
 
 def main():
@@ -225,7 +228,7 @@ def main():
           if floor.get_centroid(mac):
               print mac
               print floor.get_centroid(mac)
-          centroids.append(floor.get_centroid(mac))
+              centroids.append(floor.get_centroid(mac))
         print '-'*20
         if args.enable_graphics:
             screen.blit(fl,(0,0))
