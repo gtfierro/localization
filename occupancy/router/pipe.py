@@ -135,8 +135,6 @@ class Collector:
         else:
             return self.macs
     
-    #TODO: maybe subtract the min signal *per router* for all RSSI for *that router* instead of subtracting the overall min
-    #      from all signals
     def get_data_normalize_to_min(self):
         """
         for all signal strengths s_i, get the min s_min and max s_max, and then with dS = s_max - s_min, recompute each signal strength as
