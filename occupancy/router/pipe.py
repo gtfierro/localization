@@ -29,6 +29,7 @@ class Collector:
         self.cycles = {}    #key = router-ip, value = router cycle proc
         self.pings = {}     #key = ping-ip, value = ping proc
         self.records = {}
+        self.num_routers = len(list(router_list))
 
         self.r = redis.StrictRedis()
         self.bssids = bssids
@@ -176,6 +177,8 @@ class Collector:
                 else:
                     data = datadict[router][mac]
                     ret.extend(zip(data, [router]*len(data)))
+            else:
+                return None
         return ret
 
 
