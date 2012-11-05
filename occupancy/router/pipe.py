@@ -44,9 +44,11 @@ class Collector:
                 '/usr/bin/killall ping',
                 '/usr/sbin/iw dev wlan0 del',
                 '/usr/sbin/iw phy phy0 interface add wlan0 type monitor',
+                '/sbin/ifconfig wlan0 up',
                 '/usr/sbin/iw dev wlan0 set txpower fixed 0',
-                '/usr/sbin/iw dev wlan0 set channel 4',
-                '/sbin/ifconfig wlan0 up']
+                '/sbin/ifconfig wlan0 up',
+                '/usr/sbin/iw dev wlan0 set channel 4'
+                ]
         setup_procs = {}
 
         print "Setting up routers..."
