@@ -1,7 +1,5 @@
 //var ROOT_DOMAIN = "http://128.32.130.216:8000";
 
-var ROOT_DOMAIN = "http://localhost:8000";
-
 var Floor = {
 	'data' : [],
 	'update' : function(datalist){
@@ -52,7 +50,7 @@ var Floor = {
 		}
 	},
 	'fetch' : function(){
-		$.getJSON(ROOT_DOMAIN+'/data', function(data){
+		$.getJSON('/client_data', function(data){
 			Floor.update(data.data);
 		});
 	}
@@ -78,16 +76,38 @@ var Vis = {
 		circles.enter()
 			.insert("div")
 				.attr("class", "ball")
+				.style("width", "0px")
+				.style("height", "0px")
+				.style("border", function(d){
+					if ( d.ip === MY_IP ){
+						return "2px solid #D84A0F";
+					}else{
+						return "2px solid #FFF";
+					}
+				})
 				.style("top", function (d) { return d.y+"px";})
 				.style("left", function (d) { return d.x+"px";});
 
 		circles
-			.transition().duration(2000)
+			.transition().duration(700)
+				.style("margin-left", "-5px")
+				.style("margin-top", "-5px")
+				.style("width", "10px")
+				.style("height", "10px")
+				.style("background-color", function(d){
+					if ( d.h === undefined || d.s === undefined || d.l === undefined ){
+						return "#4d90fe";
+					}else{
+						return d3.hsl(d.h,d.s,d.l).toString();
+					}
+				})
 				.style("top", function (d) { return d.y+"px";})
 				.style("left", function (d) { return d.x+"px";});
 		
 		circles.exit()
-			.transition().duration(1000)
+			.transition().duration(700)
+				.style("width", "0px")
+				.style("height", "0px")
 				.remove();
 	},
 	'drawZones' : function(){
@@ -109,19 +129,57 @@ var Vis = {
 Vis.svg = d3.select("#visual");
 Vis.svg
 	.append("img")
-		.attr("src", ROOT_DOMAIN+"/static/assets/img/floor4.png")
+		.attr("src","/static/assets/img/floor4.png")
 		.attr("top", "0px")
 		.attr("left", "0px")
 		.attr("width", "600px")
 		.attr("height", "240px");
 
-
+/*Vis.toggle = {};
+Vis.toggle.zones = {
+	state : 1, //1 is on, 0 is off
+	switch : function(){
+		if ( Vis.toggle.zones.state === 1 ){
+			return;
+		}else{
+			return;
+		}
+	}
+};
+Vis.toggle.zones = {};*/
 //create zones for vis
 //Floor.generateZones(floordata.zones); //run this only once!!!!
 //Floor.update(floordata.data);//update periodically
-$.ajax({url:ROOT_DOMAIN+'/data', dataType: 'json', success:function(data){
+$.ajax({url:'/zone_data', dataType: 'json', success:function(data){
 	Floor.generateZones(data.zones);
-	Floor.update(data.data);
+	Floor.fetch();
 	setInterval( Floor.fetch, 5000);
 }});
+
+Vis.color = $.farbtastic("#picker", function(cc){
+	var pref = {"h":Vis.color.hsl[0]*360,"s":Vis.color.hsl[1],"l":Vis.color.hsl[2]};
+	$('#colorbox').css('background-color', cc);
+	d3.selectAll(".ball").data(Floor.data, function(d){ return d.mac; }).transition().duration(500)
+		.style("background-color", function(d){
+			if ( d.ip === MY_IP ){
+				return cc;
+			}else{
+				if ( d.h === undefined || d.s === undefined || d.l === undefined ){
+					return "#4d90fe";
+				}else{
+					return d3.hsl(d.h,d.s,d.l).toString();
+				}
+			}
+		});
+	$.ajax({
+		url:'/update_pref',
+		data: pref,
+		success: function(){Floor.fetch()},
+		error:function(){alert("Something went wrong..");}
+	});
+});
+
+Vis.color.setColor("#4d90fe");
+
+
 
