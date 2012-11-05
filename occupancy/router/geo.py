@@ -9,7 +9,7 @@ from collections import deque
 from collections import defaultdict
 from scipy import stats
 from prun import IOMgr
-from json_formatter import Formatter
+import json
 import argparse
 
 
@@ -118,9 +118,11 @@ class Floor(object):
     and router-ip is a string corresponding to one of the routers we've registered with
     this Floor
     """
-    sum_signals = sum(map(lambda x: .001 * (10 ** (float(x[0]) / 10.0)), data))
     x_coord = 0
     y_coord = 0
+    if not data:
+        return x_coord, y_coord
+    sum_signals = sum(map(lambda x: .001 * (10 ** (float(x[0]) / 10.0)), data))
     for point in data:
       signal = .001 * (10 ** (float(point[0]) / 10.0))
       if point[1] not in self.routers.keys():
@@ -158,18 +160,27 @@ class Floor(object):
     # get the most recent data for the given mac address
     alldata = self.collector.get_data_normalize_to_min()
     macdata = self.collector.get_data_for_mac(mac, True, datadict=alldata)
-    if not macdata:
-        return None
     # compute the centroid from the recent data
     self.compute_centroid_exp(mac,macdata)
     # use self.centroid_store historical data
     res = self._avg_n_closest_points(5, self.centroid_store[mac])
     if res:
-        d={}
+        print macdata
+        d = {}
         d['x'] = res[0]
         d['y'] = res[1]
         d['ip'] = self.r.hget('macip', mac)
-        self.r.hset('client_location',mac, d)
+        if macdata:
+            d['last_updated'] = int(time.time())
+        else:
+            old_data = self.r.hget('client_location',mac)
+            if old_data:
+                d['last_updated'] = int(json.loads(old_data)['last_updated'])
+            else:
+                return None
+        self.r.hset('client_location',mac, json.dumps(d))
+        if abs(d['last_updated'] - int(time.time())) > 60:
+            return None
     return res 
 
 def main():
@@ -223,6 +234,7 @@ def main():
               print cent
               centroids.append(cent)
           else:
+              print 'deleting mac: ',mac
               floor.r.hdel('client_location',mac)
         print '-'*20
         if args.enable_graphics:
