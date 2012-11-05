@@ -1,6 +1,6 @@
 function make_req() {
   var d = new Date();
-  $.ajax(
+  $.ajax({
     'url': '/dummy',
     'data': {'d': d.getTime()},
     'timeout': 100,
@@ -8,7 +8,7 @@ function make_req() {
       console.log('complete');
       make_req();
     }
-  );
+  });
 }
 $(function() {
   make_req();
