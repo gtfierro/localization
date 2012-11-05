@@ -11,6 +11,10 @@ try:
       for ip in r.hgetall('ipmac'):
           if ip not in processes.keys():
               processes[ip] = subprocess.Popen('ping %s' % ip, shell=True)
+      for ip in processes.iterkeys():
+          if ip not in r.hgetall('ipmac'):
+              processes[ip].kill()
+              processes.pop(ip)
 except Exception as e:
   print e
   for ip in processes:
