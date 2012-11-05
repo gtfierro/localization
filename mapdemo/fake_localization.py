@@ -14,4 +14,4 @@ while True:
     data = json.dumps({'x': random.randint(0,599), 'y': random.randint(0, 240), 'ip': ip})
     print mac, data
     r.hset('client_location', mac, data)
-  time.sleep(3)
+  time.sleep(0.5)

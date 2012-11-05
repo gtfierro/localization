@@ -1,4 +1,5 @@
 //var ROOT_DOMAIN = "http://128.32.130.216:8000";
+var POLL_INTERVAL = 1000;
 
 var Floor = {
 	'data' : [],
@@ -50,8 +51,17 @@ var Floor = {
 		}
 	},
 	'fetch' : function(){
-		$.getJSON('/client_data', function(data){
-			Floor.update(data.data);
+    $.ajax({
+      url: '/client_data',
+      dataType: 'json',
+      timeout: 2000,
+      success: function(data) {
+        Floor.update(data.data);
+      },
+      complete: function() {
+        // Fetch again
+        setTimeout(Floor.fetch, POLL_INTERVAL);
+      }
 		});
 	}
 };
@@ -90,10 +100,10 @@ var Vis = {
 
 		circles
 			.transition().duration(700)
-				.style("margin-left", "-5px")
-				.style("margin-top", "-5px")
-				.style("width", "10px")
-				.style("height", "10px")
+				.style("margin-left", "-7px")
+				.style("margin-top", "-7px")
+				.style("width", "14px")
+				.style("height", "14px")
 				.style("background-color", function(d){
 					if ( d.h === undefined || d.s === undefined || d.l === undefined ){
 						return "#4d90fe";
@@ -185,7 +195,6 @@ $.getJSON('/client_data', function(data){
 	$.ajax({url:'/zone_data', dataType: 'json', success:function(data){
 		Floor.generateZones(data.zones);
 		Floor.fetch();
-		setInterval( Floor.fetch, 5000);
 	}});
 });
 
