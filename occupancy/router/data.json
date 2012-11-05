@@ -2,9 +2,9 @@
     "height": 341, 
     "width": 750, 
     "light_zones": [
-      {"server": "10.10.0.11", "lamp": 3 },
+      {"server": "10.10.0.11", "lamp": 1 },
       null,
-      {"server": "10.10.0.11", "lamp": 1 }
+      {"server": "10.10.0.11", "lamp": 3 }
     ],
     "zones": [
         [

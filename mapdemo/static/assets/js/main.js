@@ -86,6 +86,7 @@ var Vis = {
 		circles.enter()
 			.insert("div")
 				.attr("class", "ball")
+				.style("display", Vis.cToggle.ret)
 				.style("width", "0px")
 				.style("height", "0px")
 				.style("border", function(d){
@@ -100,6 +101,7 @@ var Vis = {
 
 		circles
 			.transition().duration(700)
+				.style("display", Vis.cToggle.ret)
 				.style("margin-left", "-7px")
 				.style("margin-top", "-7px")
 				.style("width", "14px")
@@ -129,11 +131,20 @@ var Vis = {
 				.style("width", "0px")
 				.style("height", function(d){ return parseFloat(d.height-4)+"px";})
 				.style("left", "0px")
-				.style("top", "0px")
+				.style("top", "0px");
+		Vis.zones
 			.transition().duration(500)
+				.style("display", Vis.zToggle.ret)
 				.style("width", function(d){ return parseFloat(d.width-4)+"px";})
 				.style("left", function(d){ return d.tl.x+"px";})
 				.style("top", function(d){ return d.tl.y+"px";});
+	},
+	'hideZones' : function(){
+		Vis.zones = Vis.svg.selectAll(".rec").data(Floor.zones);
+		Vis.zones
+			.transition().duration(500)
+				.style("width", "0px")
+				.style("left", "0px");
 	}
 };
 Vis.svg = d3.select("#visual");
@@ -145,21 +156,45 @@ Vis.svg
 		.attr("width", "750px")
 		.attr("height", "341px");
 
-/*Vis.toggle = {};
-Vis.toggle.zones = {
-	state : 1, //1 is on, 0 is off
+Vis.cToggle = {
+	state : 1,
+	ret : "block",
 	switch : function(){
-		if ( Vis.toggle.zones.state === 1 ){
-			return;
+		if ( Vis.cToggle.state === 1 ){
+			Vis.cToggle.ret = "none";
+			Vis.cToggle.state = 0;
+			$("#ctog").removeClass("blue");
+			$("#ctog").addClass("red");
+			Vis.drawDevice();
 		}else{
-			return;
+			Vis.cToggle.ret = "block";
+			Vis.cToggle.state = 1;
+			$("#ctog").addClass("blue");
+			$("#ctog").removeClass("red");
+			Vis.drawDevice();
 		}
 	}
 };
-Vis.toggle.zones = {};*/
-//create zones for vis
-//Floor.generateZones(floordata.zones); //run this only once!!!!
-//Floor.update(floordata.data);//update periodically
+Vis.zToggle = {
+	state : 1,
+	switch : function(){
+		if ( Vis.zToggle.state === 1 ){
+			Vis.zToggle.ret = "none";
+			Vis.zToggle.state = 0;
+			$("#ztog").removeClass("blue");
+			$("#ztog").addClass("red");
+			Vis.hideZones();
+		}else{
+			Vis.zToggle.ret = "block";
+			Vis.zToggle.state = 1;
+			$("#ztog").addClass("blue");
+			$("#ztog").removeClass("red");
+			Vis.drawZones();
+		}
+	}
+};
+
+
 Vis.color = $.farbtastic("#picker", function(cc){
 	var pref = {"h":Vis.color.hsl[0]*360,"s":Vis.color.hsl[1],"l":Vis.color.hsl[2]};
 	$('#colorbox').css('background-color', cc);
