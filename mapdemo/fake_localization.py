@@ -11,7 +11,7 @@ while True:
     r.hset('macip', mac, ip)
     r.hset('ipmac', ip, mac)
 
-    data = json.dumps([random.randint(0,599), random.randint(0, 240), ip])
+    data = json.dumps({'x': random.randint(0,599), 'y': random.randint(0, 240), 'ip': ip})
     print mac, data
     r.hset('client_location', mac, data)
   time.sleep(3)

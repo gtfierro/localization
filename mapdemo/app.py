@@ -36,8 +36,8 @@ def client_data():
       else:
         pref = json.loads(pref_data)
 
-      d = json.loads(loc_data)
-      client_data = {'mac': mac, 'x': d[0], 'y': d[1], 'ip': d[2]}
+      client_data = json.loads(loc_data)
+      client_data.update({'mac': mac})
       client_data.update(pref)
       data.append(client_data)
 
