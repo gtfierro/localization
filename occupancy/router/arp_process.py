@@ -12,6 +12,7 @@ r = redis.Redis()
 r.delete('macs')
 r.delete('ipmac')
 r.delete('macip')
+r.delete('client_location')
 
 while True:
   os.system('scp root@10.10.0.1:/tmp/dhcp.leases /tmp/dhcp')
