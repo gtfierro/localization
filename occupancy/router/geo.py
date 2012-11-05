@@ -166,7 +166,6 @@ class Floor(object):
     res = self._avg_n_closest_points(5, self.centroid_store[mac])
     if res:
         d={}
-        d['mac'] = mac
         d['x'] = res[0]
         d['y'] = res[1]
         d['ip'] = self.r.hget('macip', mac)
@@ -218,12 +217,13 @@ def main():
         mgr.poll(args.sample_period)
         centroids = []
         for mac in floor.macs:
-          if floor.get_centroid(mac):
+          cent = floor.get_centroid(mac)
+          if cent:
               print mac
-              print floor.get_centroid(mac)
-              centroids.append(floor.get_centroid(mac))
+              print cent
+              centroids.append(cent)
           else:
-              self.r.hdel(mac)
+              floor.r.hdel('client_location',mac)
         print '-'*20
         if args.enable_graphics:
             screen.blit(fl,(0,0))
@@ -235,9 +235,6 @@ def main():
               if cen:
                 pygame.draw.circle(screen, col, map(lambda x: int(x), cen), 5)
             pygame.display.flip()
-        floor.json.update(floor.json_tmp)
-        floor.json.to_json()
-        floor.json_tmp = []
         c.clear_data()
       except KeyboardInterrupt:
         c.kill()
