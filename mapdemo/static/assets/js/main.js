@@ -185,6 +185,8 @@ $.getJSON('/client_data', function(data){
 	var d = current[0]
 	if (current.length !== 0){
 		Vis.color.setColor(d3.hsl(d.h,d.s,d.l).toString());
-	};
+	}else{
+		$("#colorpref").hide();
+	}
 });
 
