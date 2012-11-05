@@ -174,12 +174,17 @@ Vis.color = $.farbtastic("#picker", function(cc){
 	$.ajax({
 		url:'/update_pref',
 		data: pref,
-		success: function(){Floor.fetch()},
+		success: function(){return;},
 		error:function(){alert("Something went wrong..");}
 	});
 });
 
 
-
-Vis.color.setColor("#4d90fe");
+$.getJSON('/client_data', function(data){
+	var current = _.filter(data.data, function(d){return d.ip === MY_IP;});
+	var d = current[0]
+	if (current.length !== 0){
+		Vis.color.setColor(d3.hsl(d.h,d.s,d.l).toString());
+	};
+});
 
