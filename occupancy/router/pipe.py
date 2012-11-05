@@ -45,7 +45,7 @@ class Collector:
                 '/usr/sbin/iw dev wlan0 del',
                 '/usr/sbin/iw phy phy0 interface add wlan0 type monitor',
                 '/usr/sbin/iw dev wlan0 set txpower fixed 0',
-                '/usr/sbin/iw dev wlan0 set channel 11',
+                '/usr/sbin/iw dev wlan0 set channel 4',
                 '/sbin/ifconfig wlan0 up']
         setup_procs = {}
 
