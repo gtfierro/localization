@@ -16,6 +16,29 @@
       body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
+            html,
+            body {
+              height: 100%;
+              /* The html and body elements cannot have any padding or margin. */
+            }
+      
+            /* Wrapper for page content to push down footer */
+            #wrap {
+              min-height: 100%;
+              height: auto !important;
+              height: 100%;
+              /* Negative indent footer by it's height */
+              margin: 0 auto -60px;
+            }
+      
+            /* Set the fixed height of the footer here */
+            #push,
+            #footer {
+              height: 60px;
+            }
+            #footer {
+              background-color: #f5f5f5;
+            }
       .ball{
       	position: absolute;
       	display: block;
@@ -57,6 +80,13 @@
       	display: inline-block;
       	margin-right: 10px;
       }
+      .container {
+             width: auto;
+             max-width: 680px;
+           }
+           .container .credit {
+             margin: 20px 0;
+           }
     </style>
     <link href="static/assets/css/bootstrap-responsive.css" rel="stylesheet">
     <link href="static/assets/css/m-buttons.min.css" rel="stylesheet">
@@ -87,19 +117,19 @@
           <a class="brand" href="#">Localization Demo</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
+              <li class="active"><a href="/">Home</a></li>
+              <li><a href="/about">About</a></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
       </div>
     </div>
 
-    <div class="container">
+    <div class="container" id="wrap">
 
       <h2>Floor 4 - SDH</h2>
       <div class="viscontainer">
-      	<div id="visual" style="border: 1px dotted #c8c8c8; background: #f2f2f2; position: relative; width: 600px; height: 240px;">      	
+      	<div id="visual" style="border: 1px dotted #c8c8c8; background: #f2f2f2; position: relative; width: 750px; height: 341px;">      	
       	</div>
       </div>
       <button class="m-btn blue">Devices</button><button class="m-btn blue">Zone</button>
@@ -108,8 +138,18 @@
 		<h2><span id="colorbox"></span>Your color preference:</h2>
 		
 		<div id="picker"></div>
+		
+		<br><br>
+		<div id="push"></div>
+		    </div>
+		
+		    <div id="footer">
+		      <div class="container">
+		        <p class="muted credit">UI Created by  <a href="http://anthonysutardja.com">Anthony Sutardja</a>.</p>
+		      </div>
+		    </div>
     </div> <!-- /container -->
-
+	
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->

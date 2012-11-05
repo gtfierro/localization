@@ -129,11 +129,11 @@ var Vis = {
 Vis.svg = d3.select("#visual");
 Vis.svg
 	.append("img")
-		.attr("src","/static/assets/img/floor4.png")
+		.attr("src","/static/assets/img/floorplan.png")
 		.attr("top", "0px")
 		.attr("left", "0px")
-		.attr("width", "600px")
-		.attr("height", "240px");
+		.attr("width", "750px")
+		.attr("height", "341px");
 
 /*Vis.toggle = {};
 Vis.toggle.zones = {
@@ -179,7 +179,7 @@ Vis.color = $.farbtastic("#picker", function(cc){
 	});
 });
 
+
+
 Vis.color.setColor("#4d90fe");
-
-
 
