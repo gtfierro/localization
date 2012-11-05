@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, Response, render_template
 import json
 import redis
 import random
+import time
 
 app = Flask(__name__)
 
@@ -63,5 +64,8 @@ def update_pref():
     r.hset('client_pref', mac, data)
     return jsonify(success=True)
 
+@app.route("/dummy")
+def dummy():
+    return jsonify(data=str(time.time()))
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8000)
