@@ -150,12 +150,6 @@ Vis.toggle.zones = {};*/
 //create zones for vis
 //Floor.generateZones(floordata.zones); //run this only once!!!!
 //Floor.update(floordata.data);//update periodically
-$.ajax({url:'/zone_data', dataType: 'json', success:function(data){
-	Floor.generateZones(data.zones);
-	Floor.fetch();
-	setInterval( Floor.fetch, 5000);
-}});
-
 Vis.color = $.farbtastic("#picker", function(cc){
 	var pref = {"h":Vis.color.hsl[0]*360,"s":Vis.color.hsl[1],"l":Vis.color.hsl[2]};
 	$('#colorbox').css('background-color', cc);
@@ -179,7 +173,6 @@ Vis.color = $.farbtastic("#picker", function(cc){
 	});
 });
 
-
 $.getJSON('/client_data', function(data){
 	var current = _.filter(data.data, function(d){return d.ip === MY_IP;});
 	var d = current[0]
@@ -188,5 +181,16 @@ $.getJSON('/client_data', function(data){
 	}else{
 		$("#colorpref").hide();
 	}
+	//continue initialization
+	$.ajax({url:'/zone_data', dataType: 'json', success:function(data){
+		Floor.generateZones(data.zones);
+		Floor.fetch();
+		setInterval( Floor.fetch, 5000);
+	}});
 });
+
+
+
+
+
 
