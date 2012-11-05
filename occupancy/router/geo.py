@@ -27,7 +27,7 @@ class Floor(object):
     [macs] is a list of mac address we are tracking
     """
     self.routers = {}
-    self.centroid_store = defaultdict(lambda : deque(maxlen=10))
+    self.centroid_store = defaultdict(lambda : deque(maxlen=5))
     self.collector = collector
     self.r = redis.StrictRedis() 
     if isinstance(floor_image, str):
@@ -49,10 +49,6 @@ class Floor(object):
     server: router_ip as string
     pos: (x,y) router location relative to floor_image
     """
-    if pos[0] > self.floor_image_width or pos[0] < 0:
-      raise ValueError('x pos must be within %d and 0' % self.floor_image_width)
-    if pos[1] > self.floor_image_height or pos[1] < 0:
-      raise ValueError('y pos must be within %d and 0' % self.floor_image_height)
     if server not in self.collector.routers.keys():
       raise ValueError('router %s must be in collector list' % server)
     self.routers[server] = (pos[0],pos[1])
