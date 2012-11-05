@@ -9,6 +9,10 @@ app = Flask(__name__)
 def home():
     return render_template('base.html', user_ip = request.remote_addr)
 
+@app.route("/about")
+def about():
+    return render_template('about.html')
+
 @app.route("/zone_data")
 def zone_data():
     try:
