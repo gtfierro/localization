@@ -24,7 +24,7 @@ def _set_color(light, h, s, b):
 
   print "Setting light", light, "to", h,s,b
   if b == 0:
-    writes = [json.dumps({'bri': 0, 'on': True})]
+    writes = [json.dumps({'bri': 0, 'on': False})]
   else:
     writes = [json.dumps({'bri': b, 'on': True}), json.dumps({'hue': h, 'sat': s})]
 
